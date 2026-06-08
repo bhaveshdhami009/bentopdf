@@ -501,15 +501,20 @@ document.addEventListener('DOMContentLoaded', () => {
       ) {
         showLoader('Creating ZIP file...');
         const zip = new JSZip();
-        for (const index of uniqueIndices) {
-          const newPdf = await PDFLibDocument.create();
-          const [copiedPage] = await newPdf.copyPages(state.pdfDoc, [
-            index as number,
-          ]);
-          newPdf.addPage(copiedPage);
-          const pdfBytes = await newPdf.save();
-          zip.file(`page-${index + 1}.pdf`, new Uint8Array(pdfBytes));
-        }
+        await Promise.all(
+          uniqueIndices.map(async (index) => {
+            const newPdf = await PDFLibDocument.create();
+            const [copiedPage] = await newPdf.copyPages(state.pdfDoc, [
+              index as number,
+            ]);
+            newPdf.addPage(copiedPage);
+            const pdfBytes = await newPdf.save();
+            zip.file(
+              `page-${(index as number) + 1}.pdf`,
+              new Uint8Array(pdfBytes)
+            );
+          })
+        );
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         downloadFile(zipBlob, 'split-pages.zip');
       } else {
