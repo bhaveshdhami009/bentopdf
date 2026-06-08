@@ -5,6 +5,7 @@ import {
   hexToRgb,
   formatBytes,
   parsePageRanges,
+  getCleanPdfFilename,
 } from '../js/utils/helpers';
 
 describe('helpers', () => {
@@ -209,6 +210,51 @@ describe('helpers', () => {
     it('should skip non-numeric values', () => {
       const result = parsePageRanges('1,abc,5', totalPages);
       expect(result).toEqual([0, 4]);
+    });
+  });
+
+  describe('getCleanPdfFilename', () => {
+    it('should remove .pdf extension', () => {
+      expect(getCleanPdfFilename('document.pdf')).toBe('document');
+    });
+
+    it('should be case insensitive when removing extension', () => {
+      expect(getCleanPdfFilename('document.PDF')).toBe('document');
+      expect(getCleanPdfFilename('document.PdF')).toBe('document');
+    });
+
+    it('should not modify filename without .pdf extension', () => {
+      expect(getCleanPdfFilename('document')).toBe('document');
+      expect(getCleanPdfFilename('document.jpg')).toBe('document.jpg');
+    });
+
+    it('should trim whitespace', () => {
+      expect(getCleanPdfFilename('  document.pdf  ')).toBe('document');
+      expect(getCleanPdfFilename('  document  ')).toBe('document');
+    });
+
+    it('should truncate strings longer than 80 characters', () => {
+      const longName = 'a'.repeat(90) + '.pdf';
+      const result = getCleanPdfFilename(longName);
+      expect(result.length).toBe(80);
+      expect(result).toBe('a'.repeat(80));
+    });
+
+    it('should handle strings exactly 80 characters long', () => {
+      const exactName = 'a'.repeat(80) + '.pdf';
+      const result = getCleanPdfFilename(exactName);
+      expect(result.length).toBe(80);
+      expect(result).toBe('a'.repeat(80));
+    });
+
+    it('should handle empty strings', () => {
+      expect(getCleanPdfFilename('')).toBe('');
+      expect(getCleanPdfFilename('   ')).toBe('');
+    });
+
+    it('should only remove .pdf at the end of the filename', () => {
+      expect(getCleanPdfFilename('my.pdf.file.pdf')).toBe('my.pdf.file');
+      expect(getCleanPdfFilename('my.pdf.file')).toBe('my.pdf.file');
     });
   });
 });
