@@ -56,8 +56,7 @@ function attachEventListeners(element: HTMLElement) {
     const grid = document.getElementById('page-grid');
     const pages = grid.querySelectorAll('.page-number');
     pages.forEach((label, index) => {
-      // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'string'.
-      label.textContent = index + 1;
+      label.textContent = (index + 1).toString();
     });
   };
 
@@ -114,8 +113,7 @@ export async function renderDuplicateOrganizeThumbnails() {
     const wrapper = document.createElement('div');
     wrapper.className =
       'page-thumbnail relative cursor-move flex flex-col items-center gap-2';
-    // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'string'.
-    wrapper.dataset.originalPageIndex = pageNumber - 1;
+    wrapper.dataset.originalPageIndex = (pageNumber - 1).toString();
 
     const imgContainer = document.createElement('div');
     imgContainer.className =
