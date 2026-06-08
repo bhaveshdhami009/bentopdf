@@ -36,6 +36,37 @@ describe('helpers', () => {
     it('should return Custom for non-standard sizes', () => {
       expect(getStandardPageName(600, 800)).toBe('Custom');
     });
+
+    it('should identify Tabloid portrait', () => {
+      expect(getStandardPageName(792, 1224)).toBe('Tabloid');
+    });
+
+    it('should identify Tabloid landscape', () => {
+      expect(getStandardPageName(1224, 792)).toBe('Tabloid');
+    });
+
+    it('should identify A5 portrait', () => {
+      expect(getStandardPageName(419.53, 595.28)).toBe('A5');
+    });
+
+    it('should identify A5 landscape', () => {
+      expect(getStandardPageName(595.28, 419.53)).toBe('A5');
+    });
+
+    it('should identify size just inside tolerance limit', () => {
+      // A4 is 595.28 x 841.89, tolerance is < 1
+      expect(getStandardPageName(595.28 + 0.99, 841.89 - 0.99)).toBe('A4');
+    });
+
+    it('should return Custom for size exactly at or outside tolerance limit', () => {
+      expect(getStandardPageName(595.28 + 1.0, 841.89)).toBe('Custom');
+      expect(getStandardPageName(595.28, 841.89 + 1.1)).toBe('Custom');
+    });
+
+    it('should return Custom for zero or negative dimensions', () => {
+      expect(getStandardPageName(0, 0)).toBe('Custom');
+      expect(getStandardPageName(-595.28, -841.89)).toBe('Custom');
+    });
   });
 
   describe('convertPoints', () => {
