@@ -5,6 +5,7 @@ import {
   hexToRgb,
   formatBytes,
   parsePageRanges,
+  uint8ArrayToBase64,
 } from '../js/utils/helpers';
 
 describe('helpers', () => {
@@ -209,6 +210,45 @@ describe('helpers', () => {
     it('should skip non-numeric values', () => {
       const result = parsePageRanges('1,abc,5', totalPages);
       expect(result).toEqual([0, 4]);
+    });
+  });
+
+  describe('uint8ArrayToBase64', () => {
+    it('should convert an empty array', () => {
+      const arr = new Uint8Array(0);
+      expect(uint8ArrayToBase64(arr)).toBe('');
+    });
+
+    it('should convert a simple string to base64', () => {
+      // "hello world" -> Uint8Array
+      const str = "hello world";
+      const arr = new Uint8Array(str.length);
+      for (let i = 0; i < str.length; i++) {
+        arr[i] = str.charCodeAt(i);
+      }
+      expect(uint8ArrayToBase64(arr)).toBe(btoa(str));
+    });
+
+    it('should handle large arrays spanning multiple chunks', () => {
+      const size = 10000; // Larger than chunkSize of 8192
+      const arr = new Uint8Array(size);
+      let expectedStr = "";
+      for (let i = 0; i < size; i++) {
+        const val = i % 256;
+        arr[i] = val;
+        expectedStr += String.fromCharCode(val);
+      }
+      expect(uint8ArrayToBase64(arr)).toBe(btoa(expectedStr));
+    });
+
+    it('should correctly encode all byte values', () => {
+      const arr = new Uint8Array(256);
+      let expectedStr = "";
+      for (let i = 0; i < 256; i++) {
+        arr[i] = i;
+        expectedStr += String.fromCharCode(i);
+      }
+      expect(uint8ArrayToBase64(arr)).toBe(btoa(expectedStr));
     });
   });
 });
