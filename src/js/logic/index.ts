@@ -1,5 +1,3 @@
-// import { mdToPdf } from './md-to-pdf.js';
-
 import { processAndSave } from './duplicate-organize.js';
 
 import { setupCropperTool } from './cropper.js';
