@@ -107,10 +107,8 @@ async function convert() {
     let textContent = '';
 
     if (currentMode === 'upload') {
-      for (const file of files) {
-        const text = await file.text();
-        textContent += text + '\n\n';
-      }
+      const texts = await Promise.all(files.map((file) => file.text()));
+      textContent = texts.join('\n\n') + (texts.length > 0 ? '\n\n' : '');
     } else {
       const textInput = document.getElementById(
         'text-input'
