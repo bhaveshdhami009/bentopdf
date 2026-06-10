@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { shouldInsertSpaceBetweenItems } from '../../../js/compare/engine/extract-page-model';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  extractPageModel,
+  shouldInsertSpaceBetweenItems,
+} from '@/js/compare/engine/extract-page-model';
 import type { CompareTextItem } from '../../../js/compare/types';
 
 describe('shouldInsertSpaceBetweenItems', () => {
@@ -12,8 +15,6 @@ describe('shouldInsertSpaceBetweenItems', () => {
       id: `id-${text}`,
       normalizedText: text,
       rect: { x, y: 0, width, height: 10 },
-      // Only properties used by shouldInsertSpaceBetweenItems and averageCharacterWidth
-      // are explicitly needed, but depending on CompareTextItem definition we might need more
     }) as any;
 
   it('should return false if text is missing', () => {
@@ -45,42 +46,78 @@ describe('shouldInsertSpaceBetweenItems', () => {
   });
 
   it('should return false if gap is less than or equal to 0', () => {
-    // left ends at x=50
     const left = createMockItem('hello', 0, 50);
-    // right starts at x=50, gap = 0
+
     const right = createMockItem('world', 50, 50);
     expect(shouldInsertSpaceBetweenItems(left, right)).toBe(false);
 
-    // right starts at x=40, gap = -10
     const right2 = createMockItem('world', 40, 50);
     expect(shouldInsertSpaceBetweenItems(left, right2)).toBe(false);
   });
 
   it('should return true if gap is greater than threshold', () => {
-    // left ends at x=50
-    const left = createMockItem('hello', 0, 50); // width=50, len=5, char_width=10
-    // right starts at x=60, gap=10. Threshold should be min(10,10)*0.45 = 4.5. 10 > 4.5.
-    const right = createMockItem('world', 60, 50); // width=50, len=5, char_width=10
+    const left = createMockItem('hello', 0, 50);
+    const right = createMockItem('world', 60, 50);
+
     expect(shouldInsertSpaceBetweenItems(left, right)).toBe(true);
   });
 
   it('should return false if gap is positive but less than threshold', () => {
-    // left ends at x=50
-    const left = createMockItem('hello', 0, 50); // char_width=10
-    // right starts at x=52, gap=2. Threshold = max(4.5, 1.5) = 4.5. 2 < 4.5.
-    const right = createMockItem('world', 52, 50); // char_width=10
+    const left = createMockItem('hello', 0, 50);
+    const right = createMockItem('world', 52, 50);
+
     expect(shouldInsertSpaceBetweenItems(left, right)).toBe(false);
   });
 
   it('should use minimum threshold of 1.5 if character widths are very small', () => {
-    // char_width = 1
     const left = createMockItem('hello', 0, 5);
-    // gap = 1, char_width = 1. threshold = max(1*0.45, 1.5) = 1.5. 1 < 1.5.
+
     const right = createMockItem('world', 6, 5);
     expect(shouldInsertSpaceBetweenItems(left, right)).toBe(false);
 
-    // gap = 2, threshold = 1.5. 2 >= 1.5.
     const right2 = createMockItem('world', 7, 5);
     expect(shouldInsertSpaceBetweenItems(left, right2)).toBe(true);
+  });
+});
+
+describe('extractPageModel', () => {
+  it('handles font resolution errors gracefully', async () => {
+    const mockPage = {
+      getTextContent: vi.fn().mockResolvedValue({
+        items: [{ fontName: 'g_d0_f1' }],
+        styles: {},
+      }),
+      getAnnotations: vi.fn().mockResolvedValue([]),
+      getOperatorList: vi
+        .fn()
+        .mockResolvedValue({ fnArray: [], argsArray: [] }),
+      commonObjs: {
+        has: vi.fn().mockReturnValue(true),
+        get: vi.fn().mockImplementation(() => {
+          throw new Error('Test error resolving font');
+        }),
+      },
+      pageNumber: 1,
+    } as any;
+
+    const mockViewport = {
+      width: 800,
+      height: 600,
+      transform: [1, 0, 0, 1, 0, 0],
+      scale: 1,
+    } as any;
+
+    const consoleSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
+
+    await extractPageModel(mockPage, mockViewport);
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Failed to resolve font name for "g_d0_f1"',
+      expect.any(Error)
+    );
+
+    consoleSpy.mockRestore();
   });
 });
