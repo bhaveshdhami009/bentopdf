@@ -41,11 +41,15 @@ describe('helpers', () => {
     });
 
     it('should escape multiple occurrences of special characters', () => {
-      expect(escapeHtml('<<>>&&""\'\'')).toBe('&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&#039;&#039;');
+      expect(escapeHtml('<<>>&&""\'\'')).toBe(
+        '&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&#039;&#039;'
+      );
     });
 
     it('should escape combinations of special characters', () => {
-      expect(escapeHtml('<script>alert("XSS & fun")</script>')).toBe('&lt;script&gt;alert(&quot;XSS &amp; fun&quot;)&lt;/script&gt;');
+      expect(escapeHtml('<script>alert("XSS & fun")</script>')).toBe(
+        '&lt;script&gt;alert(&quot;XSS &amp; fun&quot;)&lt;/script&gt;'
+      );
     });
   });
   describe('getStandardPageName', () => {
@@ -171,6 +175,18 @@ describe('helpers', () => {
     it('should be case insensitive', () => {
       expect(hexToRgb('#FF0000')).toEqual({ r: 1, g: 0, b: 0 });
     });
+
+    it('should convert 3-character hex to RGB (with #)', () => {
+      expect(hexToRgb('#f00')).toEqual({ r: 1, g: 0, b: 0 });
+    });
+
+    it('should convert 3-character hex to RGB (without #)', () => {
+      expect(hexToRgb('0f0')).toEqual({ r: 0, g: 1, b: 0 });
+    });
+
+    it('should handle 3-character hex case insensitively', () => {
+      expect(hexToRgb('#00F')).toEqual({ r: 0, g: 0, b: 1 });
+    });
   });
 
   describe('formatBytes', () => {
@@ -229,11 +245,15 @@ describe('helpers', () => {
     const totalPages = 10;
 
     it('should return all pages for empty string', () => {
-      expect(parsePageRanges('', totalPages)).toEqual([0,1,2,3,4,5,6,7,8,9]);
+      expect(parsePageRanges('', totalPages)).toEqual([
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ]);
     });
 
     it('should return all pages for whitespace', () => {
-      expect(parsePageRanges('   ', totalPages)).toEqual([0,1,2,3,4,5,6,7,8,9]);
+      expect(parsePageRanges('   ', totalPages)).toEqual([
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ]);
     });
 
     it('should parse single page', () => {
@@ -241,43 +261,47 @@ describe('helpers', () => {
     });
 
     it('should parse multiple single pages', () => {
-      expect(parsePageRanges('1,3,5', totalPages)).toEqual([0,2,4]);
+      expect(parsePageRanges('1,3,5', totalPages)).toEqual([0, 2, 4]);
     });
 
     it('should parse page ranges', () => {
-      expect(parsePageRanges('1-3', totalPages)).toEqual([0,1,2]);
+      expect(parsePageRanges('1-3', totalPages)).toEqual([0, 1, 2]);
     });
 
     it('should parse mixed ranges and single pages', () => {
-      expect(parsePageRanges('1,3-5,7', totalPages)).toEqual([0,2,3,4,6]);
+      expect(parsePageRanges('1,3-5,7', totalPages)).toEqual([0, 2, 3, 4, 6]);
     });
 
     it('should handle spaces in input', () => {
-      expect(parsePageRanges(' 1 , 3 - 5 , 7 ', totalPages)).toEqual([0,2,3,4,6]);
+      expect(parsePageRanges(' 1 , 3 - 5 , 7 ', totalPages)).toEqual([
+        0, 2, 3, 4, 6,
+      ]);
     });
 
     it('should remove duplicates and sort', () => {
-      expect(parsePageRanges('5,3,5,1-3', totalPages)).toEqual([0,1,2,4]);
+      expect(parsePageRanges('5,3,5,1-3', totalPages)).toEqual([0, 1, 2, 4]);
     });
 
     it('should skip invalid page numbers', () => {
-      expect(parsePageRanges('0,1,15,5', totalPages)).toEqual([0,4]);
+      expect(parsePageRanges('0,1,15,5', totalPages)).toEqual([0, 4]);
     });
 
     it('should skip invalid ranges', () => {
-      expect(parsePageRanges('1-15,3-5', totalPages)).toEqual([2,3,4]);
+      expect(parsePageRanges('1-15,3-5', totalPages)).toEqual([2, 3, 4]);
     });
 
     it('should skip ranges where start > end', () => {
-      expect(parsePageRanges('5-3,1-2', totalPages)).toEqual([0,1]);
+      expect(parsePageRanges('5-3,1-2', totalPages)).toEqual([0, 1]);
     });
 
     it('should handle all pages explicitly', () => {
-      expect(parsePageRanges('1-10', totalPages)).toEqual([0,1,2,3,4,5,6,7,8,9]);
+      expect(parsePageRanges('1-10', totalPages)).toEqual([
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ]);
     });
 
     it('should skip non-numeric values', () => {
-      expect(parsePageRanges('1,abc,5', totalPages)).toEqual([0,4]);
+      expect(parsePageRanges('1,abc,5', totalPages)).toEqual([0, 4]);
     });
   });
 
