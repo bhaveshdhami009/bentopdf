@@ -137,12 +137,12 @@ describe('helpers', () => {
 
   describe('formatBytes', () => {
     it('should format 0 bytes', () => {
-      expect(formatBytes(0)).toBe('0 Bytes');
+      expect(formatBytes(0)).toBe('0 B');
     });
 
     it('should format bytes', () => {
-      expect(formatBytes(500)).toBe('500 Bytes');
-      expect(formatBytes(1023)).toBe('1023 Bytes');
+      expect(formatBytes(500)).toBe('500 B');
+      expect(formatBytes(1023)).toBe('1023 B');
     });
 
     it('should format kilobytes', () => {
@@ -166,6 +166,24 @@ describe('helpers', () => {
 
     it('should handle decimal values', () => {
       expect(formatBytes(1536)).toBe('1.5 KB');
+    });
+
+    it('should handle negative values', () => {
+      expect(formatBytes(-1024)).toBe('-1 KB');
+      expect(formatBytes(-500)).toBe('-500 B');
+    });
+
+    it('should handle negative decimals', () => {
+      expect(formatBytes(1536, -1)).toBe('2 KB');
+    });
+
+    it('should handle PB, EB, ZB, YB', () => {
+      expect(formatBytes(1099511627776 * 1024)).toBe('1 PB');
+      expect(formatBytes(1099511627776 * 1024 * 1024)).toBe('1 EB');
+      expect(formatBytes(1099511627776 * 1024 * 1024 * 1024)).toBe('1 ZB');
+      expect(formatBytes(1099511627776 * 1024 * 1024 * 1024 * 1024)).toBe(
+        '1 YB'
+      );
     });
   });
 
