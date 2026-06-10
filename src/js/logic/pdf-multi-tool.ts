@@ -1248,10 +1248,11 @@ async function downloadSplitPdfs() {
       }
 
       const copiedPagesMap = new Map<PDFLibDocument, PDFPage[]>();
-      for (const [doc, pageIdxs] of Array.from(docPageIndices)) {
-        const copied = await newPdf.copyPages(doc, pageIdxs);
-        copiedPagesMap.set(doc, copied);
-      }
+      await Promise.all(
+        Array.from(docPageIndices).map(async ([doc, pageIdxs]) => {
+          copiedPagesMap.set(doc, await newPdf.copyPages(doc, pageIdxs));
+        })
+      );
 
       const docConsumeIndex = new Map<PDFLibDocument, number>();
       docPageIndices.forEach((_, doc) => docConsumeIndex.set(doc, 0));
@@ -1332,10 +1333,11 @@ async function downloadPagesAsPdf(indices: number[], filename: string) {
     }
 
     const copiedPagesMap = new Map<PDFLibDocument, PDFPage[]>();
-    for (const [doc, pageIdxs] of Array.from(docPageIndices)) {
-      const copied = await newPdf.copyPages(doc, pageIdxs);
-      copiedPagesMap.set(doc, copied);
-    }
+    await Promise.all(
+      Array.from(docPageIndices).map(async ([doc, pageIdxs]) => {
+        copiedPagesMap.set(doc, await newPdf.copyPages(doc, pageIdxs));
+      })
+    );
 
     const docConsumeIndex = new Map<PDFLibDocument, number>();
     docPageIndices.forEach((_, doc) => docConsumeIndex.set(doc, 0));
