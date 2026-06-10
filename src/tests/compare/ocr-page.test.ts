@@ -94,4 +94,42 @@ describe('compare OCR page recognition', () => {
 
     expect(mockWorker.terminate).toHaveBeenCalledTimes(1);
   });
+
+  it('handles missing arrays in OCR result gracefully without throwing TypeError', async () => {
+    const canvas = {
+      width: 300,
+      height: 150,
+    } as HTMLCanvasElement;
+
+    mockWorker.recognize.mockResolvedValue({
+      data: {},
+    });
+
+    const model1 = await recognizePageCanvas(canvas, 'eng');
+    expect(model1.textItems).toHaveLength(0);
+
+    mockWorker.recognize.mockResolvedValue({
+      data: {
+        blocks: [{}],
+      },
+    });
+    const model2 = await recognizePageCanvas(canvas, 'eng');
+    expect(model2.textItems).toHaveLength(0);
+
+    mockWorker.recognize.mockResolvedValue({
+      data: {
+        blocks: [{ paragraphs: [{}] }],
+      },
+    });
+    const model3 = await recognizePageCanvas(canvas, 'eng');
+    expect(model3.textItems).toHaveLength(0);
+
+    mockWorker.recognize.mockResolvedValue({
+      data: {
+        blocks: [{ paragraphs: [{ lines: [{}] }] }],
+      },
+    });
+    const model4 = await recognizePageCanvas(canvas, 'eng');
+    expect(model4.textItems).toHaveLength(0);
+  });
 });
