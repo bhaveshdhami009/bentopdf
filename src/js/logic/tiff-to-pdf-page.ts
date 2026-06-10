@@ -90,8 +90,12 @@ async function convert() {
   showLoader('Converting TIFF to PDF...');
   try {
     const pdfDoc = await PDFLibDocument.create();
-    for (const file of files) {
-      const tiffBytes = await readFileAsArrayBuffer(file);
+
+    const tiffBytesArray = await Promise.all(
+      files.map((file) => readFileAsArrayBuffer(file))
+    );
+
+    for (const tiffBytes of tiffBytesArray) {
       const ifds = decode(tiffBytes as ArrayBuffer);
 
       for (const ifd of ifds) {
