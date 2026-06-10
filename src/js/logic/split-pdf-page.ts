@@ -326,22 +326,20 @@ document.addEventListener('DOMContentLoaded', () => {
             showLoader('Creating separate PDFs for each range...');
             const zip = new JSZip();
 
-            await Promise.all(
-              rangeGroups.map(async (group) => {
-                const newPdf = await PDFLibDocument.create();
-                const copiedPages = await newPdf.copyPages(state.pdfDoc, group);
-                copiedPages.forEach((page) => newPdf.addPage(page));
-                const pdfBytes = await newPdf.save();
+            for (const group of rangeGroups) {
+              const newPdf = await PDFLibDocument.create();
+              const copiedPages = await newPdf.copyPages(state.pdfDoc, group);
+              copiedPages.forEach((page) => newPdf.addPage(page));
+              const pdfBytes = await newPdf.save();
 
-                const minPage = Math.min(...group) + 1;
-                const maxPage = Math.max(...group) + 1;
-                const filename =
-                  minPage === maxPage
-                    ? `page-${minPage}.pdf`
-                    : `pages-${minPage}-${maxPage}.pdf`;
-                zip.file(filename, pdfBytes);
-              })
-            );
+              const minPage = Math.min(...group) + 1;
+              const maxPage = Math.max(...group) + 1;
+              const filename =
+                minPage === maxPage
+                  ? `page-${minPage}.pdf`
+                  : `pages-${minPage}-${maxPage}.pdf`;
+              zip.file(filename, pdfBytes);
+            }
 
             const zipBlob = await zip.generateAsync({ type: 'blob' });
             downloadFile(zipBlob, 'split-pages.zip');
@@ -419,28 +417,27 @@ document.addEventListener('DOMContentLoaded', () => {
           splitPages.sort((a, b) => a - b);
           const zip = new JSZip();
 
-          await Promise.all(
-            splitPages.map(async (splitPage, i) => {
-              const startPage = i === 0 ? 0 : splitPage;
-              const endPage =
-                i < splitPages.length - 1
-                  ? splitPages[i + 1] - 1
-                  : totalPages - 1;
+          for (let i = 0; i < splitPages.length; i++) {
+            const splitPage = splitPages[i];
+            const startPage = i === 0 ? 0 : splitPage;
+            const endPage =
+              i < splitPages.length - 1
+                ? splitPages[i + 1] - 1
+                : totalPages - 1;
 
-              const newPdf = await PDFLibDocument.create();
-              const pageIndices = Array.from(
-                { length: endPage - startPage + 1 },
-                (_, idx) => startPage + idx
-              );
-              const copiedPages = await newPdf.copyPages(
-                state.pdfDoc,
-                pageIndices
-              );
-              copiedPages.forEach((page) => newPdf.addPage(page));
-              const pdfBytes2 = await newPdf.save();
-              zip.file(`split-${i + 1}.pdf`, pdfBytes2);
-            })
-          );
+            const newPdf = await PDFLibDocument.create();
+            const pageIndices = Array.from(
+              { length: endPage - startPage + 1 },
+              (_, idx) => startPage + idx
+            );
+            const copiedPages = await newPdf.copyPages(
+              state.pdfDoc,
+              pageIndices
+            );
+            copiedPages.forEach((page) => newPdf.addPage(page));
+            const pdfBytes2 = await newPdf.save();
+            zip.file(`split-${i + 1}.pdf`, pdfBytes2);
+          }
 
           const zipBlob = await zip.generateAsync({ type: 'blob' });
           downloadFile(zipBlob, 'split-by-bookmarks.zip');
@@ -461,25 +458,23 @@ document.addEventListener('DOMContentLoaded', () => {
           const zip2 = new JSZip();
           const numSplits = Math.ceil(totalPages / nValue);
 
-          await Promise.all(
-            Array.from({ length: numSplits }, (_, i) => i).map(async (i) => {
-              const startPage = i * nValue;
-              const endPage = Math.min(startPage + nValue - 1, totalPages - 1);
-              const pageIndices = Array.from(
-                { length: endPage - startPage + 1 },
-                (_, idx) => startPage + idx
-              );
+          for (let i = 0; i < numSplits; i++) {
+            const startPage = i * nValue;
+            const endPage = Math.min(startPage + nValue - 1, totalPages - 1);
+            const pageIndices = Array.from(
+              { length: endPage - startPage + 1 },
+              (_, idx) => startPage + idx
+            );
 
-              const newPdf = await PDFLibDocument.create();
-              const copiedPages = await newPdf.copyPages(
-                state.pdfDoc,
-                pageIndices
-              );
-              copiedPages.forEach((page) => newPdf.addPage(page));
-              const pdfBytes3 = await newPdf.save();
-              zip2.file(`split-${i + 1}.pdf`, pdfBytes3);
-            })
-          );
+            const newPdf = await PDFLibDocument.create();
+            const copiedPages = await newPdf.copyPages(
+              state.pdfDoc,
+              pageIndices
+            );
+            copiedPages.forEach((page) => newPdf.addPage(page));
+            const pdfBytes3 = await newPdf.save();
+            zip2.file(`split-${i + 1}.pdf`, pdfBytes3);
+          }
 
           const zipBlob2 = await zip2.generateAsync({ type: 'blob' });
           downloadFile(zipBlob2, 'split-n-times.zip');
@@ -506,17 +501,18 @@ document.addEventListener('DOMContentLoaded', () => {
       ) {
         showLoader('Creating ZIP file...');
         const zip = new JSZip();
-        await Promise.all(
-          uniqueIndices.map(async (index) => {
-            const newPdf = await PDFLibDocument.create();
-            const [copiedPage] = await newPdf.copyPages(state.pdfDoc, [
-              index as number,
-            ]);
-            newPdf.addPage(copiedPage);
-            const pdfBytes = await newPdf.save();
-            zip.file(`page-${(index as number) + 1}.pdf`, new Uint8Array(pdfBytes));
-          })
-        );
+        for (const index of uniqueIndices) {
+          const newPdf = await PDFLibDocument.create();
+          const [copiedPage] = await newPdf.copyPages(state.pdfDoc, [
+            index as number,
+          ]);
+          newPdf.addPage(copiedPage);
+          const pdfBytes = await newPdf.save();
+          zip.file(
+            `page-${(index as number) + 1}.pdf`,
+            new Uint8Array(pdfBytes)
+          );
+        }
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         downloadFile(zipBlob, 'split-pages.zip');
       } else {
