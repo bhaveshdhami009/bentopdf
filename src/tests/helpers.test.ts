@@ -76,6 +76,20 @@ describe('helpers', () => {
       expect(result).toEqual({ r: 0, g: 1, b: 0 });
     });
 
+    it('should convert 3-char hex to RGB (with #)', () => {
+      const result = hexToRgb('#f00');
+      expect(result.r).toBeCloseTo(1, 2);
+      expect(result.g).toBeCloseTo(0, 2);
+      expect(result.b).toBeCloseTo(0, 2);
+    });
+
+    it('should convert 3-char hex to RGB (without #)', () => {
+      const result = hexToRgb('0f0');
+      expect(result.r).toBeCloseTo(0, 2);
+      expect(result.g).toBeCloseTo(1, 2);
+      expect(result.b).toBeCloseTo(0, 2);
+    });
+
     it('should handle blue color', () => {
       const result = hexToRgb('#0000ff');
       expect(result).toEqual({ r: 0, g: 0, b: 1 });
@@ -96,6 +110,11 @@ describe('helpers', () => {
       expect(result.r).toBeCloseTo(0.502, 2);
       expect(result.g).toBeCloseTo(0.502, 2);
       expect(result.b).toBeCloseTo(0.502, 2);
+    });
+
+    it('should return black for 3-char invalid hex', () => {
+      const result = hexToRgb('zzz');
+      expect(result).toEqual({ r: 0, g: 0, b: 0 });
     });
 
     it('should return black for invalid hex', () => {
