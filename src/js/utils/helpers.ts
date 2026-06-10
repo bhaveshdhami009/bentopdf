@@ -458,7 +458,10 @@ export function formatRawDate(raw: string): string {
  * @returns The sanitized filename without the `.pdf` extension, limited to 80 characters
  */
 export function getCleanPdfFilename(filename: string): string {
-  let clean = filename.replace(/\.pdf$/i, '').trim();
+  let clean = filename
+    .trim()
+    .replace(/\.pdf$/i, '')
+    .trim();
   if (clean.length > 80) {
     clean = clean.slice(0, 80);
   }

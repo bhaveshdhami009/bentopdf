@@ -1115,8 +1115,6 @@ function bulkRotate(delta: number) {
       }
     }
   });
-
-  // TODO@ALAM - Do NOT call updatePageDisplay() as it destroys lazy loading observers
 }
 
 function bulkDelete() {
