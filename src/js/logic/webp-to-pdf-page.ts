@@ -216,12 +216,18 @@ async function convertToPdf() {
     const pdfDoc = await PDFLibDocument.create();
     const quality = getSelectedQuality();
 
-    for (const file of files) {
-      const originalBytes = await readFileAsArrayBuffer(file);
-      const compressed = await compressImageBytes(
-        new Uint8Array(originalBytes as ArrayBuffer),
-        quality
-      );
+    const processedImages = await Promise.all(
+      files.map(async (file) => {
+        const originalBytes = await readFileAsArrayBuffer(file);
+        const compressed = await compressImageBytes(
+          new Uint8Array(originalBytes as ArrayBuffer),
+          quality
+        );
+        return { originalBytes, compressed };
+      })
+    );
+
+    for (const { originalBytes, compressed } of processedImages) {
       let embeddedImage;
 
       if (compressed.type === 'jpeg') {

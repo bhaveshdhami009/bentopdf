@@ -63,12 +63,14 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
 }
 
 export const formatBytes = (bytes: number, decimals = 1) => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return '0 B';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const absBytes = Math.abs(bytes);
+  const i = Math.floor(Math.log(absBytes) / Math.log(k));
+  const value = parseFloat((absBytes / Math.pow(k, i)).toFixed(dm));
+  return (bytes < 0 ? '-' : '') + value + ' ' + sizes[i];
 };
 
 export const downloadFile = (blob: Blob, filename: string): void => {
@@ -458,7 +460,10 @@ export function formatRawDate(raw: string): string {
  * @returns The sanitized filename without the `.pdf` extension, limited to 80 characters
  */
 export function getCleanPdfFilename(filename: string): string {
-  let clean = filename.replace(/\.pdf$/i, '').trim();
+  let clean = filename
+    .trim()
+    .replace(/\.pdf$/i, '')
+    .trim();
   if (clean.length > 80) {
     clean = clean.slice(0, 80);
   }
