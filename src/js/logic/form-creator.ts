@@ -3042,10 +3042,6 @@ async function handlePdfUpload(file: File) {
           }
         }
       });
-
-      // TODO@ALAM: DEBUGGER
-      // console.log('Field counter after upload:', fieldCounter)
-      // console.log('Existing field names:', Array.from(existingFieldNames))
     } catch (e) {
       console.log('No form fields found or error reading fields:', e);
     }
