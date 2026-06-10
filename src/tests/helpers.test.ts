@@ -5,11 +5,49 @@ import {
   hexToRgb,
   formatBytes,
   parsePageRanges,
+  escapeHtml,
   getCleanPdfFilename,
   uint8ArrayToBase64,
 } from '../js/utils/helpers';
 
 describe('helpers', () => {
+  describe('escapeHtml', () => {
+    it('should return empty string if input is empty', () => {
+      expect(escapeHtml('')).toBe('');
+    });
+
+    it('should return same string if there are no special characters', () => {
+      expect(escapeHtml('hello world')).toBe('hello world');
+    });
+
+    it('should escape &', () => {
+      expect(escapeHtml('a & b')).toBe('a &amp; b');
+    });
+
+    it('should escape <', () => {
+      expect(escapeHtml('a < b')).toBe('a &lt; b');
+    });
+
+    it('should escape >', () => {
+      expect(escapeHtml('a > b')).toBe('a &gt; b');
+    });
+
+    it('should escape "', () => {
+      expect(escapeHtml('a " b')).toBe('a &quot; b');
+    });
+
+    it("should escape '", () => {
+      expect(escapeHtml("a ' b")).toBe('a &#039; b');
+    });
+
+    it('should escape multiple occurrences of special characters', () => {
+      expect(escapeHtml('<<>>&&""\'\'')).toBe('&lt;&lt;&gt;&gt;&amp;&amp;&quot;&quot;&#039;&#039;');
+    });
+
+    it('should escape combinations of special characters', () => {
+      expect(escapeHtml('<script>alert("XSS & fun")</script>')).toBe('&lt;script&gt;alert(&quot;XSS &amp; fun&quot;)&lt;/script&gt;');
+    });
+  });
   describe('getStandardPageName', () => {
     it('should identify A4 portrait', () => {
       expect(getStandardPageName(595.28, 841.89)).toBe('A4');
