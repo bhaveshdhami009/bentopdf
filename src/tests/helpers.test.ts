@@ -5,6 +5,7 @@ import {
   hexToRgb,
   formatBytes,
   parsePageRanges,
+  getCleanPdfFilename,
   uint8ArrayToBase64,
 } from '../js/utils/helpers';
 
@@ -68,28 +69,23 @@ describe('helpers', () => {
 
   describe('hexToRgb', () => {
     it('should convert hex to RGB (with #)', () => {
-      const result = hexToRgb('#ff0000');
-      expect(result).toEqual({ r: 1, g: 0, b: 0 });
+      expect(hexToRgb('#ff0000')).toEqual({ r: 1, g: 0, b: 0 });
     });
 
     it('should convert hex to RGB (without #)', () => {
-      const result = hexToRgb('00ff00');
-      expect(result).toEqual({ r: 0, g: 1, b: 0 });
+      expect(hexToRgb('00ff00')).toEqual({ r: 0, g: 1, b: 0 });
     });
 
     it('should handle blue color', () => {
-      const result = hexToRgb('#0000ff');
-      expect(result).toEqual({ r: 0, g: 0, b: 1 });
+      expect(hexToRgb('#0000ff')).toEqual({ r: 0, g: 0, b: 1 });
     });
 
     it('should handle white color', () => {
-      const result = hexToRgb('#ffffff');
-      expect(result).toEqual({ r: 1, g: 1, b: 1 });
+      expect(hexToRgb('#ffffff')).toEqual({ r: 1, g: 1, b: 1 });
     });
 
     it('should handle black color', () => {
-      const result = hexToRgb('#000000');
-      expect(result).toEqual({ r: 0, g: 0, b: 0 });
+      expect(hexToRgb('#000000')).toEqual({ r: 0, g: 0, b: 0 });
     });
 
     it('should handle gray color', () => {
@@ -100,13 +96,11 @@ describe('helpers', () => {
     });
 
     it('should return black for invalid hex', () => {
-      const result = hexToRgb('invalid');
-      expect(result).toEqual({ r: 0, g: 0, b: 0 });
+      expect(hexToRgb('invalid')).toEqual({ r: 0, g: 0, b: 0 });
     });
 
     it('should be case insensitive', () => {
-      const result = hexToRgb('#FF0000');
-      expect(result).toEqual({ r: 1, g: 0, b: 0 });
+      expect(hexToRgb('#FF0000')).toEqual({ r: 1, g: 0, b: 0 });
     });
   });
 
@@ -148,106 +142,144 @@ describe('helpers', () => {
     const totalPages = 10;
 
     it('should return all pages for empty string', () => {
-      const result = parsePageRanges('', totalPages);
-      expect(result).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(parsePageRanges('', totalPages)).toEqual([0,1,2,3,4,5,6,7,8,9]);
     });
 
     it('should return all pages for whitespace', () => {
-      const result = parsePageRanges('   ', totalPages);
-      expect(result).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(parsePageRanges('   ', totalPages)).toEqual([0,1,2,3,4,5,6,7,8,9]);
     });
 
     it('should parse single page', () => {
-      const result = parsePageRanges('5', totalPages);
-      expect(result).toEqual([4]); // 0-indexed
+      expect(parsePageRanges('5', totalPages)).toEqual([4]);
     });
 
     it('should parse multiple single pages', () => {
-      const result = parsePageRanges('1,3,5', totalPages);
-      expect(result).toEqual([0, 2, 4]);
+      expect(parsePageRanges('1,3,5', totalPages)).toEqual([0,2,4]);
     });
 
     it('should parse page ranges', () => {
-      const result = parsePageRanges('1-3', totalPages);
-      expect(result).toEqual([0, 1, 2]);
+      expect(parsePageRanges('1-3', totalPages)).toEqual([0,1,2]);
     });
 
     it('should parse mixed ranges and single pages', () => {
-      const result = parsePageRanges('1,3-5,7', totalPages);
-      expect(result).toEqual([0, 2, 3, 4, 6]);
+      expect(parsePageRanges('1,3-5,7', totalPages)).toEqual([0,2,3,4,6]);
     });
 
     it('should handle spaces in input', () => {
-      const result = parsePageRanges(' 1 , 3 - 5 , 7 ', totalPages);
-      expect(result).toEqual([0, 2, 3, 4, 6]);
+      expect(parsePageRanges(' 1 , 3 - 5 , 7 ', totalPages)).toEqual([0,2,3,4,6]);
     });
 
     it('should remove duplicates and sort', () => {
-      const result = parsePageRanges('5,3,5,1-3', totalPages);
-      expect(result).toEqual([0, 1, 2, 4]);
+      expect(parsePageRanges('5,3,5,1-3', totalPages)).toEqual([0,1,2,4]);
     });
 
     it('should skip invalid page numbers', () => {
-      const result = parsePageRanges('0,1,15,5', totalPages);
-      expect(result).toEqual([0, 4]); // Only valid pages
+      expect(parsePageRanges('0,1,15,5', totalPages)).toEqual([0,4]);
     });
 
     it('should skip invalid ranges', () => {
-      const result = parsePageRanges('1-15,3-5', totalPages);
-      expect(result).toEqual([2, 3, 4]); // Only 3-5 is valid
+      expect(parsePageRanges('1-15,3-5', totalPages)).toEqual([2,3,4]);
     });
 
     it('should skip ranges where start > end', () => {
-      const result = parsePageRanges('5-3,1-2', totalPages);
-      expect(result).toEqual([0, 1]); // Only 1-2 is valid
+      expect(parsePageRanges('5-3,1-2', totalPages)).toEqual([0,1]);
     });
 
     it('should handle all pages explicitly', () => {
-      const result = parsePageRanges('1-10', totalPages);
-      expect(result).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(parsePageRanges('1-10', totalPages)).toEqual([0,1,2,3,4,5,6,7,8,9]);
     });
 
     it('should skip non-numeric values', () => {
-      const result = parsePageRanges('1,abc,5', totalPages);
-      expect(result).toEqual([0, 4]);
+      expect(parsePageRanges('1,abc,5', totalPages)).toEqual([0,4]);
+    });
+  });
+
+  describe('getCleanPdfFilename', () => {
+    it('should remove .pdf extension', () => {
+      expect(getCleanPdfFilename('document.pdf')).toBe('document');
+    });
+
+    it('should be case insensitive when removing extension', () => {
+      expect(getCleanPdfFilename('document.PDF')).toBe('document');
+      expect(getCleanPdfFilename('document.PdF')).toBe('document');
+    });
+
+    it('should not modify filename without .pdf extension', () => {
+      expect(getCleanPdfFilename('document')).toBe('document');
+      expect(getCleanPdfFilename('document.jpg')).toBe('document.jpg');
+    });
+
+    it('should trim whitespace', () => {
+      expect(getCleanPdfFilename('  document.pdf  ')).toBe('document');
+      expect(getCleanPdfFilename('  document  ')).toBe('document');
+    });
+
+    it('should truncate strings longer than 80 characters', () => {
+      const longName = 'a'.repeat(90) + '.pdf';
+      const result = getCleanPdfFilename(longName);
+
+      expect(result.length).toBe(80);
+      expect(result).toBe('a'.repeat(80));
+    });
+
+    it('should handle strings exactly 80 characters long', () => {
+      const exactName = 'a'.repeat(80) + '.pdf';
+      const result = getCleanPdfFilename(exactName);
+
+      expect(result.length).toBe(80);
+      expect(result).toBe('a'.repeat(80));
+    });
+
+    it('should handle empty strings', () => {
+      expect(getCleanPdfFilename('')).toBe('');
+      expect(getCleanPdfFilename('   ')).toBe('');
+    });
+
+    it('should only remove .pdf at the end of the filename', () => {
+      expect(getCleanPdfFilename('my.pdf.file.pdf')).toBe('my.pdf.file');
+      expect(getCleanPdfFilename('my.pdf.file')).toBe('my.pdf.file');
     });
   });
 
   describe('uint8ArrayToBase64', () => {
     it('should convert an empty array', () => {
-      const arr = new Uint8Array(0);
-      expect(uint8ArrayToBase64(arr)).toBe('');
+      expect(uint8ArrayToBase64(new Uint8Array(0))).toBe('');
     });
 
     it('should convert a simple string to base64', () => {
-      // "hello world" -> Uint8Array
-      const str = "hello world";
+      const str = 'hello world';
       const arr = new Uint8Array(str.length);
+
       for (let i = 0; i < str.length; i++) {
         arr[i] = str.charCodeAt(i);
       }
+
       expect(uint8ArrayToBase64(arr)).toBe(btoa(str));
     });
 
     it('should handle large arrays spanning multiple chunks', () => {
-      const size = 10000; // Larger than chunkSize of 8192
+      const size = 10000;
       const arr = new Uint8Array(size);
-      let expectedStr = "";
+      let expectedStr = '';
+
       for (let i = 0; i < size; i++) {
         const val = i % 256;
         arr[i] = val;
         expectedStr += String.fromCharCode(val);
       }
+
       expect(uint8ArrayToBase64(arr)).toBe(btoa(expectedStr));
     });
 
     it('should correctly encode all byte values', () => {
       const arr = new Uint8Array(256);
-      let expectedStr = "";
+      let expectedStr = '';
+
       for (let i = 0; i < 256; i++) {
         arr[i] = i;
         expectedStr += String.fromCharCode(i);
       }
+
       expect(uint8ArrayToBase64(arr)).toBe(btoa(expectedStr));
     });
   });
