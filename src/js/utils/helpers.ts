@@ -52,11 +52,6 @@ export function convertPoints(points: number, unit: string) {
 
 // Convert hex color to RGB
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-  const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthandRegex, (m, r, g, b) => {
-    return r + r + g + g + b + b;
-  });
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result
     ? {
@@ -68,14 +63,12 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
 }
 
 export const formatBytes = (bytes: number, decimals = 1) => {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) return '0 Bytes';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  const absBytes = Math.abs(bytes);
-  const i = Math.floor(Math.log(absBytes) / Math.log(k));
-  const value = parseFloat((absBytes / Math.pow(k, i)).toFixed(dm));
-  return (bytes < 0 ? '-' : '') + value + ' ' + sizes[i];
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
 export const downloadFile = (blob: Blob, filename: string): void => {
@@ -465,10 +458,7 @@ export function formatRawDate(raw: string): string {
  * @returns The sanitized filename without the `.pdf` extension, limited to 80 characters
  */
 export function getCleanPdfFilename(filename: string): string {
-  let clean = filename
-    .trim()
-    .replace(/\.pdf$/i, '')
-    .trim();
+  let clean = filename.replace(/\.pdf$/i, '').trim();
   if (clean.length > 80) {
     clean = clean.slice(0, 80);
   }

@@ -4,29 +4,6 @@ import { showLoader, hideLoader, showAlert } from '../ui.js';
 import { readFileAsArrayBuffer } from '../utils/helpers.js';
 import { state } from '../state.js';
 
-declare global {
-  interface Window {
-    jspdf: {
-      jsPDF: typeof import('jspdf').jsPDF;
-    };
-  }
-
-  const mammoth: {
-    images: {
-      inline(
-        converter: (element: {
-          read(encoding: string): Promise<string>;
-          contentType: string;
-        }) => Promise<{ src: string }>
-      ): any;
-    };
-    convertToHtml(
-      input: { arrayBuffer: ArrayBuffer },
-      options?: any
-    ): Promise<{ value: string }>;
-  };
-}
-
 export async function wordToPdf() {
   const file = state.files[0];
   if (!file) {
@@ -38,6 +15,7 @@ export async function wordToPdf() {
 
   try {
     const mammothOptions = {
+      // @ts-expect-error TS(2304) FIXME: Cannot find name 'mammoth'.
       convertImage: mammoth.images.inline(
         (element: {
           read: (encoding: string) => Promise<string>;
@@ -52,6 +30,7 @@ export async function wordToPdf() {
       ),
     };
     const arrayBuffer = await readFileAsArrayBuffer(file);
+    // @ts-expect-error TS(2304) FIXME: Cannot find name 'mammoth'.
     const { value: html } = await mammoth.convertToHtml(
       { arrayBuffer },
       mammothOptions
@@ -84,9 +63,10 @@ export async function wordToPdf() {
 
     const images = previewContent.querySelectorAll('img');
     const imagePromises = Array.from(images).map((img) => {
-      return new Promise<void>((resolve) => {
+      return new Promise((resolve) => {
+        // @ts-expect-error TS(2794) FIXME: Expected 1 arguments, but got 0. Did you forget to... Remove this comment to see the full error message
         if (img.complete) resolve();
-        else img.onload = () => resolve();
+        else img.onload = resolve;
       });
     });
     await Promise.all(imagePromises);
@@ -97,6 +77,7 @@ export async function wordToPdf() {
     const downloadHandler = async () => {
       showLoader('Generating High-Quality PDF...');
 
+      // @ts-expect-error TS(2339) FIXME: Property 'jspdf' does not exist on type 'Window & ... Remove this comment to see the full error message
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({
         orientation: 'p',
