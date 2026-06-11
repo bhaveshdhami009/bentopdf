@@ -4,10 +4,39 @@ import {
   formatTesseractLanguageList,
   getAvailableTesseractLanguageEntries,
   getUnavailableTesseractLanguages,
+  resolveConfiguredTesseractAvailableLanguages,
   UnsupportedOcrLanguageError,
 } from '../js/utils/tesseract-language-availability';
 
 describe('tesseract-language-availability', () => {
+  describe('resolveConfiguredTesseractAvailableLanguages', () => {
+    it('returns null when the VITE_TESSERACT_AVAILABLE_LANGUAGES environment variable is missing', () => {
+      expect(resolveConfiguredTesseractAvailableLanguages({})).toBeNull();
+    });
+
+    it('returns null when the configured languages string is empty or contains only whitespace', () => {
+      expect(
+        resolveConfiguredTesseractAvailableLanguages({
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: '',
+        })
+      ).toBeNull();
+      expect(
+        resolveConfiguredTesseractAvailableLanguages({
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: '   ',
+        })
+      ).toBeNull();
+    });
+
+    it('handles malformed inputs: parses, trims, deduplicates, and ignores empty segments', () => {
+      expect(
+        resolveConfiguredTesseractAvailableLanguages({
+          VITE_TESSERACT_AVAILABLE_LANGUAGES:
+            ' eng , fra + deu,eng+spa,,+  ,   ',
+        })
+      ).toEqual(['eng', 'fra', 'deu', 'spa']);
+    });
+  });
+
   describe('formatTesseractLanguageList', () => {
     it('formats known language codes into "Language (code)" format', () => {
       expect(formatTesseractLanguageList(['eng'])).toBe('English (eng)');
