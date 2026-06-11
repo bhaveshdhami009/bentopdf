@@ -181,15 +181,18 @@ async function extractPages() {
     const zip = new JSZip();
     const baseName = extractState.file?.name.replace('.pdf', '') || 'document';
 
-    for (const pageNum of pagesToExtract) {
-      const newPdf = await PDFDocument.create();
-      const [copiedPage] = await newPdf.copyPages(extractState.pdfDoc, [
-        pageNum - 1,
-      ]);
-      newPdf.addPage(copiedPage);
-      const pdfBytes = await newPdf.save();
-      zip.file(`${baseName}_page_${pageNum}.pdf`, pdfBytes);
-    }
+    await Promise.all(
+      pagesToExtract.map(async (pageNum) => {
+        if (!extractState.pdfDoc) return;
+        const newPdf = await PDFDocument.create();
+        const [copiedPage] = await newPdf.copyPages(extractState.pdfDoc, [
+          pageNum - 1,
+        ]);
+        newPdf.addPage(copiedPage);
+        const pdfBytes = await newPdf.save();
+        zip.file(`${baseName}_page_${pageNum}.pdf`, pdfBytes);
+      })
+    );
 
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     downloadFile(zipBlob, `${baseName}_extracted_pages.zip`);
