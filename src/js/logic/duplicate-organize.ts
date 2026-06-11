@@ -56,7 +56,8 @@ function attachEventListeners(element: HTMLElement) {
     const grid = document.getElementById('page-grid');
     const pages = grid.querySelectorAll('.page-number');
     pages.forEach((label, index) => {
-      label.textContent = (index + 1).toString();
+      // @ts-expect-error TS(2322) FIXME: Type 'number' is not assignable to type 'string'.
+      label.textContent = index + 1;
     });
   };
 

@@ -322,7 +322,7 @@ function averageCharacterWidth(item: CompareTextItem) {
   return item.rect.width / Math.max(compactText.length, 1);
 }
 
-export function shouldInsertSpaceBetweenItems(
+function shouldInsertSpaceBetweenItems(
   left: CompareTextItem,
   right: CompareTextItem
 ) {

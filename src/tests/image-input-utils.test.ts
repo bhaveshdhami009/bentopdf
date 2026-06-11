@@ -15,7 +15,6 @@ import {
   getFileExtension,
   isValidImageFile,
   preprocessImageFile,
-  getImageResolution,
 } from '@/js/utils/image-input-utils';
 
 describe('image-input-utils', () => {

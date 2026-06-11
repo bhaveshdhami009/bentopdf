@@ -326,7 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showLoader('Creating separate PDFs for each range...');
             const zip = new JSZip();
 
-            for (const group of rangeGroups) {
+            for (let i = 0; i < rangeGroups.length; i++) {
+              const group = rangeGroups[i];
               const newPdf = await PDFLibDocument.create();
               const copiedPages = await newPdf.copyPages(state.pdfDoc, group);
               copiedPages.forEach((page) => newPdf.addPage(page));
@@ -418,8 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const zip = new JSZip();
 
           for (let i = 0; i < splitPages.length; i++) {
-            const splitPage = splitPages[i];
-            const startPage = i === 0 ? 0 : splitPage;
+            const startPage = i === 0 ? 0 : splitPages[i];
             const endPage =
               i < splitPages.length - 1
                 ? splitPages[i + 1] - 1
@@ -508,10 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ]);
           newPdf.addPage(copiedPage);
           const pdfBytes = await newPdf.save();
-          zip.file(
-            `page-${(index as number) + 1}.pdf`,
-            new Uint8Array(pdfBytes)
-          );
+          zip.file(`page-${index + 1}.pdf`, new Uint8Array(pdfBytes));
         }
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         downloadFile(zipBlob, 'split-pages.zip');

@@ -12,7 +12,7 @@ const isDevelopment =
   window.location.hostname === '127.0.0.1' ||
   window.location.port !== '';
 
-export function collectTrustedWasmHosts(): string[] {
+function collectTrustedWasmHosts(): string[] {
   const hosts = new Set<string>();
   const candidates = [
     import.meta.env.VITE_WASM_PYMUPDF_URL,

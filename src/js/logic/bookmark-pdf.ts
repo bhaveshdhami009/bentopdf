@@ -2052,6 +2052,17 @@ extractExistingBtn?.addEventListener('click', async () => {
   }
 });
 
+// function cleanTitle(title) {
+//   // @TODO@ALAM: visit this for encoding issues later
+//   if (typeof title === 'string') {
+//     if (title.includes('€') && !title.includes(' ')) {
+//       return title.replace(/€/g, ' ');
+//     }
+//     return title.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();
+//   }
+//   return title;
+// }
+
 function cleanTitle(title: string): string {
   if (typeof title === 'string') {
     return title.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();

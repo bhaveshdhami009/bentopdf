@@ -23,28 +23,7 @@ export const IMAGE_EXTENSIONS = [
   '.webp',
 ] as const;
 
-export interface ImageResolution {
-  width: number;
-  height: number;
-}
-
-export async function getImageResolution(file: File): Promise<ImageResolution> {
-  const processedFile = await preprocessImageFile(file);
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(processedFile);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error(`Failed to load image to determine resolution: ${file.name}`));
-    };
-    img.src = url;
-  });
-}
-
+// TODO@alam00000: Implement image resolution
 export const IMAGE_ACCEPT = IMAGE_EXTENSIONS.join(',');
 
 export const IMAGE_FORMATS_LABEL =
