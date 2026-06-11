@@ -85,8 +85,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('diffTextRunsAsync falls back to sync if Worker throws', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=1');
+    const api = await import('../../js/compare/worker-api');
 
     vi.stubGlobal(
       'Worker',
@@ -104,8 +103,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('pairPagesAsync falls back to sync if Worker throws', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=2');
+    const api = await import('../../js/compare/worker-api');
 
     vi.stubGlobal(
       'Worker',
@@ -122,8 +120,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('handles worker crash (onerror)', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=3');
+    const api = await import('../../js/compare/worker-api');
 
     vi.stubGlobal(
       'Worker',
@@ -150,8 +147,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('handles worker resolving with diff success', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=4');
+    const api = await import('../../js/compare/worker-api');
 
     vi.stubGlobal(
       'Worker',
@@ -189,8 +185,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('handles worker resolving with pair success', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=5');
+    const api = await import('../../js/compare/worker-api');
 
     vi.stubGlobal(
       'Worker',
@@ -225,8 +220,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('handles specific error responses from worker', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=6');
+    const api = await import('../../js/compare/worker-api');
 
     vi.stubGlobal(
       'Worker',
@@ -257,8 +251,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('handles mismatched message id', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=7');
+    const api = await import('../../js/compare/worker-api');
 
     vi.stubGlobal(
       'Worker',
@@ -290,8 +283,7 @@ describe('worker-api fallback mechanisms', () => {
   });
 
   it('does not re-initialize worker if already present', async () => {
-    // @ts-ignore
-    const api = await import('../../js/compare/worker-api?t=8');
+    const api = await import('../../js/compare/worker-api');
 
     let workerInitCount = 0;
 
