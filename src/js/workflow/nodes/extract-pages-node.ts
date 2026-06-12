@@ -42,18 +42,21 @@ export class ExtractPagesNode extends BaseWorkflowNode {
       const totalPages = srcDoc.getPageCount();
       const indices = parsePageRange(rangeStr, totalPages);
 
-      for (const idx of indices) {
-        const newPdf = await PDFDocument.create();
-        const [copiedPage] = await newPdf.copyPages(srcDoc, [idx]);
-        newPdf.addPage(copiedPage);
-        const pdfBytes = await newPdf.save();
-        allItems.push({
-          type: 'pdf' as const,
-          document: newPdf,
-          bytes: new Uint8Array(pdfBytes),
-          filename: `page_${idx + 1}.pdf`,
-        });
-      }
+      const newItems = await Promise.all(
+        indices.map(async (idx) => {
+          const newPdf = await PDFDocument.create();
+          const [copiedPage] = await newPdf.copyPages(srcDoc, [idx]);
+          newPdf.addPage(copiedPage);
+          const pdfBytes = await newPdf.save();
+          return {
+            type: 'pdf' as const,
+            document: newPdf,
+            bytes: new Uint8Array(pdfBytes),
+            filename: `page_${idx + 1}.pdf`,
+          };
+        })
+      );
+      allItems.push(...newItems);
     }
 
     if (allItems.length === 1) {
