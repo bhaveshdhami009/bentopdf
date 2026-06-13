@@ -113,7 +113,7 @@ export async function renderDuplicateOrganizeThumbnails() {
     const wrapper = document.createElement('div');
     wrapper.className =
       'page-thumbnail relative cursor-move flex flex-col items-center gap-2';
-    wrapper.dataset.originalPageIndex = (pageNumber - 1).toString();
+    wrapper.dataset.originalPageIndex = String(pageNumber - 1);
 
     const imgContainer = document.createElement('div');
     imgContainer.className =
