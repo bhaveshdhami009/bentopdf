@@ -38,12 +38,16 @@ function formatLanguageLabel(code: string): string {
 export function resolveConfiguredTesseractAvailableLanguages(
   env: TesseractAvailabilityEnv = getDefaultEnv()
 ): string[] | null {
-  const configuredLanguages = env.VITE_TESSERACT_AVAILABLE_LANGUAGES?.trim();
-  if (!configuredLanguages) {
+  try {
+    const configuredLanguages = env.VITE_TESSERACT_AVAILABLE_LANGUAGES?.trim();
+    if (!configuredLanguages) {
+      return null;
+    }
+
+    return normalizeLanguageCodes(configuredLanguages);
+  } catch {
     return null;
   }
-
-  return normalizeLanguageCodes(configuredLanguages);
 }
 
 export function getAvailableTesseractLanguageEntries(

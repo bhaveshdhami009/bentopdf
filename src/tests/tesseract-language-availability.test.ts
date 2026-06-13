@@ -35,6 +35,15 @@ describe('tesseract-language-availability', () => {
         })
       ).toEqual(['eng', 'fra', 'deu', 'spa']);
     });
+
+    it('returns null when the configured languages throws an error during processing (e.g., malformed env object without trim)', () => {
+      // @ts-expect-error - Testing runtime error handling
+      expect(
+        resolveConfiguredTesseractAvailableLanguages({
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: {},
+        })
+      ).toBeNull();
+    });
   });
 
   describe('formatTesseractLanguageList', () => {
