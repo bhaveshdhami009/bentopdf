@@ -870,12 +870,12 @@ function toggleSelectOptimized(index: number) {
 function selectAll() {
   selectedPages.clear();
   allPages.forEach((_, index) => selectedPages.add(index));
-  updatePageDisplay();
+  updatePageNumbers();
 }
 
 function deselectAll() {
   selectedPages.clear();
-  updatePageDisplay();
+  updatePageNumbers();
 }
 
 function rotatePage(index: number, delta: number) {
@@ -902,15 +902,17 @@ function rotatePage(index: number, delta: number) {
 
 function duplicatePage(index: number) {
   const originalPageData = allPages[index];
-  const originalCanvas = originalPageData.canvas;
+  if (!originalPageData) return;
 
-  const newCanvas = document.createElement('canvas');
-  newCanvas.width = originalCanvas.width;
-  newCanvas.height = originalCanvas.height;
-
-  const newContext = newCanvas.getContext('2d');
-  if (newContext) {
-    newContext.drawImage(originalCanvas, 0, 0);
+  let newCanvas = null;
+  if (originalPageData.canvas) {
+    newCanvas = document.createElement('canvas');
+    newCanvas.width = originalPageData.canvas.width;
+    newCanvas.height = originalPageData.canvas.height;
+    const ctx = newCanvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(originalPageData.canvas, 0, 0);
+    }
   }
 
   const newPageData: PageData = {
@@ -921,10 +923,28 @@ function duplicatePage(index: number) {
 
   const newIndex = index + 1;
   allPages.splice(newIndex, 0, newPageData);
-  updatePageDisplay();
+
+  const pagesContainer = document.getElementById('pages-container');
+  if (pagesContainer) {
+    const card = createPageElement(newPageData.canvas, newIndex);
+    card.dataset.pageId = newPageData.id;
+    if (newIndex < pagesContainer.children.length) {
+      pagesContainer.insertBefore(card, pagesContainer.children[newIndex]);
+    } else {
+      pagesContainer.appendChild(card);
+    }
+  }
+
+  updatePageNumbers();
+  renderSplitMarkers();
 }
 
 function deletePage(index: number) {
+  const pagesContainer = document.getElementById('pages-container');
+  if (pagesContainer && pagesContainer.children[index]) {
+    pagesContainer.children[index].remove();
+  }
+
   allPages.splice(index, 1);
   selectedPages.delete(index);
   const newSelected = new Set<number>();
@@ -939,7 +959,8 @@ function deletePage(index: number) {
     return;
   }
 
-  updatePageDisplay();
+  updatePageNumbers();
+  renderSplitMarkers();
 }
 
 async function insertPdfAfter(index: number) {
@@ -988,8 +1009,27 @@ async function handleInsertPdf(e: Event) {
     // Insert new pages into allPages
     allPages.splice(insertAfterIndex + 1, 0, ...newPages);
 
+    const pagesContainer = document.getElementById('pages-container');
+    if (pagesContainer) {
+      newPages.forEach((newPage, idx) => {
+        const globalIndex = insertAfterIndex + 1 + idx;
+        const card = createPageElement(null, globalIndex);
+        card.dataset.pageId = newPage.id;
+
+        if (globalIndex < pagesContainer.children.length) {
+          pagesContainer.insertBefore(
+            card,
+            pagesContainer.children[globalIndex]
+          );
+        } else {
+          pagesContainer.appendChild(card);
+        }
+      });
+    }
+
     // Update display to show placeholders immediately
-    updatePageDisplay();
+    updatePageNumbers();
+    renderSplitMarkers();
 
     // Render pages progressively
     for (let i = 0; i < numPages; i++) {
@@ -1084,7 +1124,14 @@ function addBlankPage() {
   };
 
   allPages.push(blankPageData);
-  updatePageDisplay();
+  const newIndex = allPages.length - 1;
+  const pagesContainer = document.getElementById('pages-container');
+  if (pagesContainer) {
+    const card = createPageElement(blankPageData.canvas, newIndex);
+    card.dataset.pageId = blankPageData.id;
+    pagesContainer.appendChild(card);
+  }
+  updatePageNumbers();
 }
 
 function bulkRotate(delta: number) {
@@ -1123,7 +1170,14 @@ function bulkDelete() {
     return;
   }
   const indices = Array.from(selectedPages).sort((a, b) => b - a);
-  indices.forEach((index) => allPages.splice(index, 1));
+  const pagesContainer = document.getElementById('pages-container');
+
+  indices.forEach((index) => {
+    allPages.splice(index, 1);
+    if (pagesContainer && pagesContainer.children[index]) {
+      pagesContainer.children[index].remove();
+    }
+  });
   selectedPages.clear();
 
   if (allPages.length === 0) {
@@ -1131,7 +1185,8 @@ function bulkDelete() {
     return;
   }
 
-  updatePageDisplay();
+  updatePageNumbers();
+  renderSplitMarkers();
 }
 
 function bulkDuplicate() {
@@ -1144,7 +1199,7 @@ function bulkDuplicate() {
     duplicatePage(index);
   });
   selectedPages.clear();
-  updatePageDisplay();
+  updatePageNumbers();
 }
 
 function bulkSplit() {
@@ -1164,7 +1219,7 @@ function bulkSplit() {
   });
   renderSplitMarkers();
   selectedPages.clear();
-  updatePageDisplay();
+  updatePageNumbers();
 }
 
 async function downloadAll() {
