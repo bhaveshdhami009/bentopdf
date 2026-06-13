@@ -37,10 +37,9 @@ describe('tesseract-language-availability', () => {
     });
 
     it('returns null when the configured languages throws an error during processing (e.g., malformed env object without trim)', () => {
-      // @ts-expect-error - Testing runtime error handling
       expect(
         resolveConfiguredTesseractAvailableLanguages({
-          VITE_TESSERACT_AVAILABLE_LANGUAGES: {},
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: {} as any,
         })
       ).toBeNull();
     });
