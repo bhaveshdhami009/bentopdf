@@ -101,7 +101,7 @@ async function convert() {
 
       const ifds = decode(tiffBytes as ArrayBuffer);
 
-      for (const ifd of ifds) {
+      const pagePromises = ifds.map(async (ifd) => {
         const width = ifd.width;
         const height = ifd.height;
 
@@ -109,7 +109,7 @@ async function convert() {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
+        if (!ctx) return null;
 
         const rgba = tiffIfdToRgba(
           ifd.data,
@@ -129,7 +129,7 @@ async function convert() {
             useJpeg ? jpegQuality : undefined
           )
         );
-        if (!blob) continue;
+        if (!blob) return null;
 
         canvas.width = 0;
         canvas.height = 0;
@@ -138,12 +138,19 @@ async function convert() {
         const image = useJpeg
           ? await pdfDoc.embedJpg(imgBytes)
           : await pdfDoc.embedPng(imgBytes);
-        const page = pdfDoc.addPage([image.width, image.height]);
-        page.drawImage(image, {
+
+        return { image, width: image.width, height: image.height };
+      });
+
+      const pages = await Promise.all(pagePromises);
+      for (const pageData of pages) {
+        if (!pageData) continue;
+        const page = pdfDoc.addPage([pageData.width, pageData.height]);
+        page.drawImage(pageData.image, {
           x: 0,
           y: 0,
-          width: image.width,
-          height: image.height,
+          width: pageData.width,
+          height: pageData.height,
         });
       }
     }
