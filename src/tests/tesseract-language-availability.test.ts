@@ -7,6 +7,7 @@ import {
   resolveConfiguredTesseractAvailableLanguages,
   UnsupportedOcrLanguageError,
 } from '../js/utils/tesseract-language-availability';
+import { tesseractLanguages } from '../js/config/tesseract-languages';
 
 describe('tesseract-language-availability', () => {
   describe('resolveConfiguredTesseractAvailableLanguages', () => {
@@ -81,6 +82,18 @@ describe('tesseract-language-availability', () => {
         ['deu', 'German'],
       ]);
     });
+
+    it('returns all OCR language entries when environment variable is missing or malformed', () => {
+      const allEntries = Object.entries(tesseractLanguages);
+      expect(getAvailableTesseractLanguageEntries({})).toEqual(allEntries);
+      expect(
+        getAvailableTesseractLanguageEntries({
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: {} as any,
+        })
+      ).toEqual(allEntries);
+      // Without env argument (covers getDefaultEnv)
+      expect(getAvailableTesseractLanguageEntries()).toEqual(allEntries);
+    });
   });
 
   describe('getUnavailableTesseractLanguages', () => {
@@ -90,6 +103,26 @@ describe('tesseract-language-availability', () => {
           VITE_TESSERACT_AVAILABLE_LANGUAGES: 'eng,deu',
         })
       ).toEqual(['fra']);
+    });
+
+    it('can accept an array of requested languages', () => {
+      expect(
+        getUnavailableTesseractLanguages(['eng', 'fra'], {
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: 'eng,deu',
+        })
+      ).toEqual(['fra']);
+    });
+
+    it('returns empty array when environment variable is missing or malformed', () => {
+      expect(getUnavailableTesseractLanguages('eng', {})).toEqual([]);
+      expect(
+        getUnavailableTesseractLanguages('eng', {
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: {} as any,
+        })
+      ).toEqual([]);
+
+      // Without env argument
+      expect(getUnavailableTesseractLanguages('eng')).toEqual([]);
     });
   });
 
@@ -124,6 +157,17 @@ describe('tesseract-language-availability', () => {
           'The requested OCR language is not available: French (fra), Japanese (jpn). ' +
           'Choose one of the bundled languages or rebuild the air-gapped bundle with the missing language added to --ocr-languages.'
       );
+    });
+
+    it('does not throw when environment variable is missing or malformed', () => {
+      expect(() => assertTesseractLanguagesAvailable('eng', {})).not.toThrow();
+      expect(() =>
+        assertTesseractLanguagesAvailable('eng', {
+          VITE_TESSERACT_AVAILABLE_LANGUAGES: {} as any,
+        })
+      ).not.toThrow();
+      // Without env argument
+      expect(() => assertTesseractLanguagesAvailable('eng')).not.toThrow();
     });
   });
 });
