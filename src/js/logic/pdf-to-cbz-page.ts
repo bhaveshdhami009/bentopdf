@@ -244,13 +244,23 @@ async function convert() {
     const ext = getExtension(options.imageFormat);
     const padLength = String(pdf.numPages).length;
 
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const blob = await renderPage(page, options);
-      if (blob) {
-        const pageNum = String(i).padStart(padLength, '0');
-        zip.file(`${pageNum}.${ext}`, blob);
+    const concurrency = 5;
+    for (let i = 1; i <= pdf.numPages; i += concurrency) {
+      const promises = [];
+      for (let j = 0; j < concurrency && i + j <= pdf.numPages; j++) {
+        promises.push(
+          (async () => {
+            const pageIndex = i + j;
+            const page = await pdf.getPage(pageIndex);
+            const blob = await renderPage(page, options);
+            if (blob) {
+              const pageNum = String(pageIndex).padStart(padLength, '0');
+              zip.file(`${pageNum}.${ext}`, blob);
+            }
+          })()
+        );
       }
+      await Promise.all(promises);
     }
 
     let zipComment = '';
