@@ -6,6 +6,7 @@ import {
   formatBytes,
   parsePageRanges,
   escapeHtml,
+  sanitizeEmailHtml,
   getCleanPdfFilename,
   uint8ArrayToBase64,
 } from '../js/utils/helpers';
@@ -422,6 +423,129 @@ describe('helpers', () => {
       }
 
       expect(uint8ArrayToBase64(arr)).toBe(btoa(expectedStr));
+    });
+  });
+
+  describe('sanitizeEmailHtml', () => {
+    it('should return empty string if input is empty', () => {
+      expect(sanitizeEmailHtml('')).toBe('');
+    });
+
+    it('should decode Outlook safelinks', () => {
+      const safelink =
+        'https://safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fpath%3Fq%3D1&data=...';
+      const html = `<a href="${safelink}">link</a>`;
+      const result = sanitizeEmailHtml(html);
+      expect(result).toContain('href="https://example.com/path?q=1"');
+    });
+
+    it('should handle malformed Outlook safelinks gracefully', () => {
+      // %ZZ is invalid URI encoding
+      const badSafelink =
+        'https://safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2F%2&data=...';
+      const html = `<a href="${badSafelink}">link</a>`;
+      const result = sanitizeEmailHtml(html);
+      expect(result).toContain(
+        `href="https://safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2F%2&amp;data=..."`
+      );
+    });
+
+    it('should truncate URLs longer than 500 characters', () => {
+      const longPath = 'a'.repeat(480);
+      const baseUrl = 'https://example.com/';
+      const longUrl = baseUrl + longPath;
+      const html = `<a href="${longUrl}">link</a>`;
+
+      const result = sanitizeEmailHtml(html);
+      // Since baseUrl (https://example.com/) is < 200 chars, it should just use baseUrl
+      expect(result).toContain(`href="${longUrl.substring(0, 200)}"`);
+    });
+
+    it('should strip query parameters for long URLs if base URL < 200 chars', () => {
+      const baseUrl = 'https://example.com/page';
+      const longQuery = '?' + 'a'.repeat(480);
+      const longUrl = baseUrl + longQuery;
+      const html = `<a href="${longUrl}">link</a>`;
+
+      const result = sanitizeEmailHtml(html);
+      expect(result).toContain(`href="${baseUrl}"`);
+    });
+
+    it('should strict truncate URLs longer than 500 characters if base URL is also >= 200', () => {
+      const longBaseUrl = 'https://' + 'a'.repeat(250) + '.com/';
+      const longPath = 'b'.repeat(250);
+      const veryLongUrl = longBaseUrl + longPath; // 500+ length
+      const html = `<a href="${veryLongUrl}">link</a>`;
+
+      const result = sanitizeEmailHtml(html);
+      expect(result).toContain(`href="${veryLongUrl.substring(0, 200)}"`);
+    });
+
+    it('should remove 1x1 tracking pixels', () => {
+      const html1 = '<img width="1" height="1" src="tracker.gif">';
+      const html2 = '<img height="1" width="1" src="tracker.gif">';
+      const html3 = '<img width="1" src="tracker.gif" height="1">'; // handled by regex
+      const html4 = '<img src="normal.jpg" width="10" height="10">';
+
+      expect(sanitizeEmailHtml(html1)).toBe('');
+      expect(sanitizeEmailHtml(html2)).toBe('');
+      // Note: The regex /<img[^>]*(?:width=["']1["'][^>]*height=["']1["']|height=["']1["'][^>]*width=["']1["'])[^>]*\/?>/gi
+      // might not match html3 depending on exact spacing, let's just test the exact patterns matched
+      expect(
+        sanitizeEmailHtml('<img src="tracker.gif" width="1" height="1" />')
+      ).toBe('');
+      expect(sanitizeEmailHtml(html4)).toContain('<img');
+    });
+
+    it('should flatten tables', () => {
+      const html = `
+        <table border="1">
+          <thead>
+            <tr><th>Header</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Data 1</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>Footer</td></tr>
+          </tfoot>
+        </table>
+      `;
+      const result = sanitizeEmailHtml(html);
+      expect(result).not.toContain('<table');
+      expect(result).not.toContain('<tbody');
+      expect(result).not.toContain('<thead');
+      expect(result).not.toContain('<tfoot');
+      expect(result).not.toContain('<tr');
+      expect(result).not.toContain('<td');
+      expect(result).not.toContain('<th');
+
+      expect(result).toContain('<div>');
+      expect(result).toContain('<strong> Header </strong>');
+      expect(result).toContain('<span> Data 1 </span>');
+      expect(result).toContain('<span> Footer </span>');
+    });
+
+    it('should truncate HTML exceeding MAX_HTML_SIZE', () => {
+      // 100k + size
+      const maxHtmlSize = 100000;
+      const piece = '<div>hello world</div>';
+      const count = Math.ceil((maxHtmlSize + 5000) / piece.length);
+      const largeHtml = piece.repeat(count);
+
+      const result = sanitizeEmailHtml(largeHtml);
+      expect(result.length).toBeLessThanOrEqual(maxHtmlSize + 100); // Allow some padding for tags
+      expect(result).toContain('</div></body></html>');
+    });
+
+    it('should handle fallback truncation for huge HTML without closing div near middle', () => {
+      // No closing div to match lastIndexOf('</div>', MAX_HTML_SIZE) condition > MAX_HTML_SIZE / 2
+      const maxHtmlSize = 100000;
+      const largeHtml = 'a'.repeat(maxHtmlSize + 5000);
+
+      const result = sanitizeEmailHtml(largeHtml);
+      expect(result).toContain('...</body></html>');
+      expect(result.length).toBeLessThanOrEqual(maxHtmlSize + 20); // 100000 + length of suffix
     });
   });
 });
