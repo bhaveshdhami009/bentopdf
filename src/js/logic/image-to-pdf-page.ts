@@ -183,17 +183,17 @@ async function convertToPdf() {
 
   try {
     const quality = getSelectedQuality();
-    const processedFiles: File[] = [];
-    for (const file of files) {
-      try {
-        const processed = await preprocessImageFile(file);
-        const compressed = await compressImageFile(processed, quality);
-        processedFiles.push(compressed);
-      } catch (error: unknown) {
-        console.warn(error);
-        throw error;
-      }
-    }
+    const processedFiles = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const processed = await preprocessImageFile(file);
+          return await compressImageFile(processed, quality);
+        } catch (error: unknown) {
+          console.warn(error);
+          throw error;
+        }
+      })
+    );
 
     showLoader('Loading engine...');
     const mupdf = await ensurePyMuPDF();

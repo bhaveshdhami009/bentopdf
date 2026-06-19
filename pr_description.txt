@@ -1,13 +1,1 @@
-⚡ [Performance] Use Promise.all for concurrent page rendering in pdf-to-png
 
-💡 **What:**
-Updated `src/js/logic/pdf-to-png-page.ts` to use `Promise.all` instead of a sequential `for` loop when converting a multi-page PDF document to PNG images. The `convert` function now creates an array of promises for `pdf.getPage` and `renderPage`, awaits them concurrently, and iterates over the results to add them to the zip archive.
-
-🎯 **Why:**
-Sequential page rendering is slow for multi-page documents because the program waits for each page to be fetched, rendered to a canvas, and converted to a blob before starting the next page. Running these independent operations concurrently significantly improves throughput.
-
-📊 **Measured Improvement:**
-A mock performance measurement simulated fetching pages (`10ms` mock latency) and rendering pages (`50ms` mock latency) for a 50-page PDF document.
-- **Baseline (Sequential Render):** 3.028s (50 pages * (10ms + 50ms) ≈ 3000ms)
-- **Optimized (Concurrent Render):** 61.367ms (Roughly the latency of the single slowest path ~60ms)
-- **Change:** Close to ~50x improvement in the ideal mocked scenario with non-blocking async tasks. While real-world DOM and `pdf.js` limitations will have more overhead, this demonstrates the dramatic reduction in idle wait time during asynchronous operations.
