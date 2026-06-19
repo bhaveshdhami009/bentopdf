@@ -1,15 +1,1 @@
-⚡ [performance improvement description]
 
-💡 **What:**
-Optimized the `applyBatesNumbers` function in `src/js/logic/bates-numbering-page.ts` to perform PDF loading and standard font embedding concurrently using `Promise.all()`.
-
-🎯 **Why:**
-Previously, the Bates numbering code was performing an await sequentially within a loop for `arrayBuffer()`, `loadPdfDocument()`, and `embedFont()` for every incoming file. This resulted in significant I/O and processing bottlenecks. By processing these async operations concurrently beforehand, we can overlap the latency and drastically improve the initialization phase for Bates numbering.
-
-📊 **Measured Improvement:**
-A dedicated benchmark was constructed to load and prepare 20 files using the exact sequence in `applyBatesNumbers`.
-
-- **Baseline Sequential Time:** ~48.08ms
-- **Optimized Concurrent Time:** ~22.85ms
-
-This shows an improvement of ~52% reduction in time (or effectively over 2x speedup) for preparing the loaded PDFs and fonts.

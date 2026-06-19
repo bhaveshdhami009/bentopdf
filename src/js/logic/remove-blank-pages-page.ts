@@ -199,12 +199,31 @@ async function detectBlankPages() {
     pageState.pageThumbnails.forEach((url) => URL.revokeObjectURL(url));
     pageState.pageThumbnails.clear();
 
-    for (let i = 1; i <= totalPages; i++) {
-      const page = await pdfDoc.getPage(i);
-      if (await isPageBlank(page, maxNonWhitePercent)) {
-        pageState.detectedBlankPages.push(i - 1); // 0-indexed
-        const thumbnail = await generateThumbnail(page);
-        pageState.pageThumbnails.set(i - 1, thumbnail);
+    const CHUNK_SIZE = 5;
+    for (let i = 1; i <= totalPages; i += CHUNK_SIZE) {
+      const chunk = [];
+      for (let j = 0; j < CHUNK_SIZE && i + j <= totalPages; j++) {
+        const pageNum = i + j;
+        chunk.push(
+          (async () => {
+            const page = await pdfDoc.getPage(pageNum);
+            if (await isPageBlank(page, maxNonWhitePercent)) {
+              const thumbnail = await generateThumbnail(page);
+              return { isBlank: true, pageNum, thumbnail };
+            }
+            return { isBlank: false, pageNum };
+          })()
+        );
+      }
+
+      const results = await Promise.all(chunk);
+      for (const res of results) {
+        if (res.isBlank) {
+          pageState.detectedBlankPages.push(res.pageNum - 1); // 0-indexed
+          if (res.thumbnail) {
+            pageState.pageThumbnails.set(res.pageNum - 1, res.thumbnail);
+          }
+        }
       }
     }
 
@@ -304,11 +323,16 @@ async function processRemoveBlankPages() {
     const newPdf = await PDFDocument.create();
     const pages = pageState.pdfDoc.getPages();
 
+    const pagesToKeep: number[] = [];
     for (let i = 0; i < pages.length; i++) {
       if (!selectedPages.includes(i)) {
-        const [copiedPage] = await newPdf.copyPages(pageState.pdfDoc, [i]);
-        newPdf.addPage(copiedPage);
+        pagesToKeep.push(i);
       }
+    }
+
+    if (pagesToKeep.length > 0) {
+      const copiedPages = await newPdf.copyPages(pageState.pdfDoc, pagesToKeep);
+      copiedPages.forEach((page) => newPdf.addPage(page));
     }
 
     const newPdfBytes = await newPdf.save();
