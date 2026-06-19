@@ -139,14 +139,12 @@ function updatePageInfo() {
 }
 
 function enableControls() {
-  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
-  document.getElementById('prev-page').disabled =
+  (document.getElementById('prev-page') as HTMLButtonElement).disabled =
     cropperState.currentPageNum <= 1;
-  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
-  document.getElementById('next-page').disabled =
+  (document.getElementById('next-page') as HTMLButtonElement).disabled =
     cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
-  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
-  document.getElementById('crop-button').disabled = false;
+  (document.getElementById('crop-button') as HTMLButtonElement).disabled =
+    false;
 }
 
 /**
