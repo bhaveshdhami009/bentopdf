@@ -95,7 +95,7 @@ export async function renderDuplicateOrganizeThumbnails() {
   cleanupLazyRendering();
 
   showLoader('Rendering page previews...');
-  const pdfData = await state.pdfDoc.save();
+  await state.pdfDoc.save();
   hideLoader();
   const loadResult = await loadPdfWithPasswordPrompt(
     state.files[0],
