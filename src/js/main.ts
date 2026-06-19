@@ -1101,14 +1101,6 @@ const init = async () => {
           }
         };
 
-        input.onkeyup = (e) => {
-          // If the user releases a modifier without pressing a main key, revert to saved
-          const key = e.key.toLowerCase();
-          if (['control', 'shift', 'alt', 'meta'].includes(key)) {
-            const currentSaved = ShortcutsManager.getShortcut(toolId);
-          }
-        };
-
         input.onfocus = () => {
           input.value = t('settings.pressKeys');
           input.classList.add('border-indigo-500', 'text-indigo-400');
