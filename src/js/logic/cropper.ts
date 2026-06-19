@@ -195,8 +195,7 @@ async function performMetadataCrop(
     const minY = Math.min(...pdfYs);
     const maxY = Math.max(...pdfYs);
 
-    // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
-    const page = pdfToModify.getPages()[pageNum - 1];
+    const page = pdfToModify.getPages()[Number(pageNum) - 1];
     page.setCropBox(minX, minY, maxX - minX, maxY - minY);
   }
 }
