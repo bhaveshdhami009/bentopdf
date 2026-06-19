@@ -159,9 +159,12 @@ async function nUpTool() {
       const cellWidth = (usableWidth - gutter * (dims[0] - 1)) / dims[0];
       const cellHeight = (usableHeight - gutter * (dims[1] - 1)) / dims[1];
 
-      for (let j = 0; j < chunk.length; j++) {
-        const sourcePage = chunk[j];
-        const embeddedPage = await newDoc.embedPage(sourcePage);
+      const embeddedPages = await Promise.all(
+        chunk.map((page) => newDoc.embedPage(page))
+      );
+
+      for (let j = 0; j < embeddedPages.length; j++) {
+        const embeddedPage = embeddedPages[j];
 
         const scale = Math.min(
           cellWidth / embeddedPage.width,
