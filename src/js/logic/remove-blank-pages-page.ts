@@ -199,12 +199,31 @@ async function detectBlankPages() {
     pageState.pageThumbnails.forEach((url) => URL.revokeObjectURL(url));
     pageState.pageThumbnails.clear();
 
-    for (let i = 1; i <= totalPages; i++) {
-      const page = await pdfDoc.getPage(i);
-      if (await isPageBlank(page, maxNonWhitePercent)) {
-        pageState.detectedBlankPages.push(i - 1); // 0-indexed
-        const thumbnail = await generateThumbnail(page);
-        pageState.pageThumbnails.set(i - 1, thumbnail);
+    const CHUNK_SIZE = 5;
+    for (let i = 1; i <= totalPages; i += CHUNK_SIZE) {
+      const chunk = [];
+      for (let j = 0; j < CHUNK_SIZE && i + j <= totalPages; j++) {
+        const pageNum = i + j;
+        chunk.push(
+          (async () => {
+            const page = await pdfDoc.getPage(pageNum);
+            if (await isPageBlank(page, maxNonWhitePercent)) {
+              const thumbnail = await generateThumbnail(page);
+              return { isBlank: true, pageNum, thumbnail };
+            }
+            return { isBlank: false, pageNum };
+          })()
+        );
+      }
+
+      const results = await Promise.all(chunk);
+      for (const res of results) {
+        if (res.isBlank) {
+          pageState.detectedBlankPages.push(res.pageNum - 1); // 0-indexed
+          if (res.thumbnail) {
+            pageState.pageThumbnails.set(res.pageNum - 1, res.thumbnail);
+          }
+        }
       }
     }
 
