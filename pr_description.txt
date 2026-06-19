@@ -1,14 +1,1 @@
-## ⚡ Optimize PDF to JPG page rendering
 
-### 💡 What
-Modified the conversion loop in `src/js/logic/pdf-to-jpg-page.ts` to process pages in parallel chunks using `Promise.all` with a chunk size of 5, rather than fetching and rendering each page sequentially.
-
-### 🎯 Why
-The previous implementation fetched and awaited each page one by one. By leveraging parallel promises, we drastically reduce wait times. Batching them in chunks of 5 avoids spiking memory limits on devices dealing with large PDFs.
-
-### 📊 Measured Improvement
-A simulated benchmark script rendering 50 pages was created.
-- **Sequential baseline:** 2.535s
-- **Parallel (Chunked) optimized:** 0.504s
-
-The chunked parallel execution provides roughly a **5x speedup** on the simulated workload while keeping maximum concurrent promises to 5, preventing memory issues. Correctness was verified via matched results output and passing unit tests.

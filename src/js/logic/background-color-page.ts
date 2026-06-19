@@ -123,10 +123,21 @@ async function changeBackgroundColor() {
   showLoader('Changing background color...');
   try {
     const newPdfDoc = await PDFLibDocument.create();
-    for (let i = 0; i < pageState.pdfDoc.getPageCount(); i++) {
-      const [originalPage] = await newPdfDoc.copyPages(pageState.pdfDoc, [i]);
+    const pageCount = pageState.pdfDoc.getPageCount();
+    const pageIndices = Array.from({ length: pageCount }, (_, i) => i);
+    const originalPages = await newPdfDoc.copyPages(
+      pageState.pdfDoc,
+      pageIndices
+    );
+    const embeddedPages = await Promise.all(
+      originalPages.map((p) => newPdfDoc.embedPage(p))
+    );
+
+    for (let i = 0; i < pageCount; i++) {
+      const originalPage = originalPages[i];
       const { width, height } = originalPage.getSize();
       const newPage = newPdfDoc.addPage([width, height]);
+
       newPage.drawRectangle({
         x: 0,
         y: 0,
@@ -134,8 +145,8 @@ async function changeBackgroundColor() {
         height,
         color: rgb(color.r, color.g, color.b),
       });
-      const embeddedPage = await newPdfDoc.embedPage(originalPage);
-      newPage.drawPage(embeddedPage, { x: 0, y: 0, width, height });
+
+      newPage.drawPage(embeddedPages[i], { x: 0, y: 0, width, height });
     }
     const newPdfBytes = await newPdfDoc.save();
     downloadFile(

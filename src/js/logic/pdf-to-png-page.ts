@@ -117,11 +117,23 @@ async function convert() {
       downloadFile(blob, getCleanPdfFilename(files[0].name) + '.png');
     } else {
       const zip = new JSZip();
+
+      const pagePromises = [];
       for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const blob = await renderPage(page, scale);
+        pagePromises.push(
+          (async () => {
+            const page = await pdf.getPage(i);
+            const blob = await renderPage(page, scale);
+            return { pageNum: i, blob };
+          })()
+        );
+      }
+
+      const results = await Promise.all(pagePromises);
+
+      for (const { pageNum, blob } of results) {
         if (blob) {
-          zip.file(`page_${i}.png`, blob);
+          zip.file(`page_${pageNum}.png`, blob);
         }
       }
 

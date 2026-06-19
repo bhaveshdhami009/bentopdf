@@ -972,26 +972,47 @@ async function applyWatermark() {
       const totalPages = watermarkedPdf.numPages;
       const renderScale = 2.5;
 
-      for (let i = 1; i <= totalPages; i++) {
-        showLoader(`Flattening page ${i} of ${totalPages}...`);
-        const page = await watermarkedPdf.getPage(i);
-        const unscaledVP = page.getViewport({ scale: 1 });
-        const viewport = page.getViewport({ scale: renderScale });
+      const concurrency = 5;
+      const results: { unscaledVP: any; jpegBytes: ArrayBuffer }[] = [];
 
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+      for (let i = 1; i <= totalPages; i += concurrency) {
+        const chunkPromises = [];
+        const end = Math.min(i + concurrency - 1, totalPages);
 
-        const jpegBytes = await new Promise<ArrayBuffer>((resolve) =>
-          canvas.toBlob(
-            (blob) => blob?.arrayBuffer().then(resolve),
-            'image/jpeg',
-            0.92
-          )
-        );
+        for (let j = i; j <= end; j++) {
+          chunkPromises.push(
+            (async (pageNum) => {
+              const page = await watermarkedPdf.getPage(pageNum);
+              const unscaledVP = page.getViewport({ scale: 1 });
+              const viewport = page.getViewport({ scale: renderScale });
 
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d')!;
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              await page.render({ canvasContext: ctx, canvas, viewport })
+                .promise;
+
+              const jpegBytes = await new Promise<ArrayBuffer>((resolve) =>
+                canvas.toBlob(
+                  (blob) => blob?.arrayBuffer().then(resolve),
+                  'image/jpeg',
+                  0.92
+                )
+              );
+
+              return { pageNum, jpegBytes, unscaledVP };
+            })(j)
+          );
+        }
+
+        const chunkResults = await Promise.all(chunkPromises);
+        results.push(...chunkResults);
+
+        showLoader(`Flattening pages ${i} to ${end} of ${totalPages}...`);
+      }
+
+      for (const { jpegBytes, unscaledVP } of results) {
         const image = await flattenedDoc.embedJpg(jpegBytes);
         const newPage = flattenedDoc.addPage([
           unscaledVP.width,
