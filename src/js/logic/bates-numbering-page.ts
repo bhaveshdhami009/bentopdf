@@ -472,10 +472,16 @@ async function applyBatesNumbers() {
     let batesCounter = batesStart;
     let fileCounter = fileStart;
 
-    for (const entry of files) {
-      const arrayBuffer = await entry.file.arrayBuffer();
-      const pdfDoc = await loadPdfDocument(arrayBuffer);
-      const font = await pdfDoc.embedFont(StandardFonts[fontName]);
+    const loadedDocs = await Promise.all(
+      files.map(async (entry) => {
+        const arrayBuffer = await entry.file.arrayBuffer();
+        const pdfDoc = await loadPdfDocument(arrayBuffer);
+        const font = await pdfDoc.embedFont(StandardFonts[fontName]);
+        return { entry, pdfDoc, font };
+      })
+    );
+
+    for (const { entry, pdfDoc, font } of loadedDocs) {
       const pages = pdfDoc.getPages();
       const fileName = entry.file.name.replace(/\.pdf$/i, '');
 
