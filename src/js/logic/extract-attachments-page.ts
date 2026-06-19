@@ -202,14 +202,10 @@ async function extractAttachments() {
     pageState.files = await batchDecryptIfNeeded(pageState.files);
     showLoader('Reading files...');
 
-    const fileBuffers: ArrayBuffer[] = [];
-    const fileNames: string[] = [];
-
-    for (const file of pageState.files) {
-      const buffer = await file.arrayBuffer();
-      fileBuffers.push(buffer);
-      fileNames.push(file.name);
-    }
+    const fileNames = pageState.files.map((file) => file.name);
+    const fileBuffers = await Promise.all(
+      pageState.files.map((file) => file.arrayBuffer())
+    );
 
     if (fileBuffers.length === 0) {
       if (processBtn) {
