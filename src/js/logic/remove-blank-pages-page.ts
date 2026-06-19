@@ -304,11 +304,16 @@ async function processRemoveBlankPages() {
     const newPdf = await PDFDocument.create();
     const pages = pageState.pdfDoc.getPages();
 
+    const pagesToKeep: number[] = [];
     for (let i = 0; i < pages.length; i++) {
       if (!selectedPages.includes(i)) {
-        const [copiedPage] = await newPdf.copyPages(pageState.pdfDoc, [i]);
-        newPdf.addPage(copiedPage);
+        pagesToKeep.push(i);
       }
+    }
+
+    if (pagesToKeep.length > 0) {
+      const copiedPages = await newPdf.copyPages(pageState.pdfDoc, pagesToKeep);
+      copiedPages.forEach((page) => newPdf.addPage(page));
     }
 
     const newPdfBytes = await newPdf.save();
