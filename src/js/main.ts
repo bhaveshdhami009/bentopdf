@@ -520,8 +520,7 @@ const init = async () => {
   const faqAccordion = document.getElementById('faq-accordion');
   if (faqAccordion) {
     faqAccordion.addEventListener('click', (e) => {
-      // @ts-expect-error TS(2339) FIXME: Property 'closest' does not exist on type 'EventTa... Remove this comment to see the full error message
-      const questionButton = e.target.closest('.faq-question');
+      const questionButton = (e.target as HTMLElement).closest('.faq-question');
       if (!questionButton) return;
 
       const faqItem = questionButton.parentElement;
