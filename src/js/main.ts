@@ -524,7 +524,7 @@ const init = async () => {
       if (!questionButton) return;
 
       const faqItem = questionButton.parentElement;
-      const answer = faqItem.querySelector('.faq-answer');
+      const answer = faqItem.querySelector('.faq-answer') as HTMLElement;
 
       faqItem.classList.toggle('open');
 
