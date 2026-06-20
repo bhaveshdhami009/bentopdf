@@ -139,14 +139,15 @@ function updatePageInfo() {
 }
 
 function enableControls() {
-  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
-  document.getElementById('prev-page').disabled =
-    cropperState.currentPageNum <= 1;
-  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
-  document.getElementById('next-page').disabled =
-    cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
-  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
-  document.getElementById('crop-button').disabled = false;
+  const prevPageBtn = document.getElementById('prev-page') as HTMLButtonElement | null;
+  if (prevPageBtn) prevPageBtn.disabled = cropperState.currentPageNum <= 1;
+
+  const nextPageBtn = document.getElementById('next-page') as HTMLButtonElement | null;
+  if (nextPageBtn)
+    nextPageBtn.disabled = cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
+
+  const cropBtn = document.getElementById('crop-button') as HTMLButtonElement | null;
+  if (cropBtn) cropBtn.disabled = false;
 }
 
 /**
@@ -195,8 +196,7 @@ async function performMetadataCrop(
     const minY = Math.min(...pdfYs);
     const maxY = Math.max(...pdfYs);
 
-    // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
-    const page = pdfToModify.getPages()[pageNum - 1];
+    const page = pdfToModify.getPages()[Number(pageNum) - 1];
     page.setCropBox(minX, minY, maxX - minX, maxY - minY);
   }
 }
