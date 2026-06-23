@@ -557,9 +557,10 @@ async function loadPdfs(files: File[]) {
         // Pre-fill allPages with placeholders to maintain order/state
         const startIndex = allPages.length;
         allPages.length = startIndex + numPages;
+        const batchIdPrefix = generateId() + '-';
         for (let i = 0; i < numPages; i++) {
           allPages[startIndex + i] = {
-            id: generateId(),
+            id: batchIdPrefix + i,
             pdfIndex,
             pageIndex: i,
             rotation: 0,
