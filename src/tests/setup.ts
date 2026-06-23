@@ -43,3 +43,20 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
+
+// Mock Worker for tests
+if (typeof globalThis.Worker === 'undefined') {
+  globalThis.Worker = class Worker {
+    constructor() {}
+    postMessage() {}
+    terminate() {}
+    addEventListener() {}
+    removeEventListener() {}
+    dispatchEvent() {
+      return true;
+    }
+    onmessage: any = null;
+    onerror: any = null;
+    onmessageerror: any = null;
+  } as any;
+}
