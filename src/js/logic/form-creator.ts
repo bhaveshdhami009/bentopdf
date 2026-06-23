@@ -218,6 +218,8 @@ function renderGrid() {
   gridContainer.className = 'absolute inset-0 pointer-events-none';
   gridContainer.style.zIndex = '1';
 
+  const fragment = document.createDocumentFragment();
+
   if (gridV > 0) {
     const stepX = canvas.offsetWidth / gridV;
     for (let i = 0; i <= gridV; i++) {
@@ -225,7 +227,7 @@ function renderGrid() {
       line.className =
         'absolute top-0 bottom-0 border-l-2 border-indigo-500 opacity-60';
       line.style.left = i * stepX + 'px';
-      gridContainer.appendChild(line);
+      fragment.appendChild(line);
     }
   }
 
@@ -236,10 +238,11 @@ function renderGrid() {
       line.className =
         'absolute left-0 right-0 border-t-2 border-indigo-500 opacity-60';
       line.style.top = i * stepY + 'px';
-      gridContainer.appendChild(line);
+      fragment.appendChild(line);
     }
   }
 
+  gridContainer.appendChild(fragment);
   canvas.insertBefore(gridContainer, canvas.firstChild);
 }
 
