@@ -18,6 +18,7 @@ import type {
 } from '../compare/types.ts';
 import { exportComparePdf } from '../compare/reporting/export-compare-pdf.ts';
 import { LRUCache } from '../compare/lru-cache.ts';
+import { escapeHtml } from '../utils/helpers.js';
 import { COMPARE_CACHE_MAX_SIZE } from '../compare/config.ts';
 import {
   getElement,
@@ -430,7 +431,7 @@ function renderChangeList() {
     const header = document.createElement('div');
     header.className = 'compare-section-header';
     header.innerHTML = `
-      <span class="compare-section-label ${type}">${typeLabels[type] || type}</span>
+      <span class="compare-section-label ${escapeHtml(type)}">${escapeHtml(typeLabels[type] || type)}</span>
       <span class="compare-section-count">${entries.length}</span>
       <span class="compare-section-line"></span>
     `;
