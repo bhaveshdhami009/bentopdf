@@ -49,6 +49,7 @@ let currentPageNum = 1;
 let totalPageCount = 1;
 let cachedPdfjsDoc: pdfjsLib.PDFDocumentProxy | null = null;
 const pageWatermarks: Map<number, PageWatermarkConfig> = new Map();
+let fallbackConfig: PageWatermarkConfig | null = null;
 let applyToAllPages = true;
 
 if (document.readyState === 'loading') {
@@ -130,6 +131,7 @@ async function handleFiles(files: FileList) {
     totalPageCount = cachedPdfjsDoc.numPages;
     currentPageNum = 1;
     pageWatermarks.clear();
+    fallbackConfig = null;
 
     updateFileDisplay();
 
@@ -190,6 +192,7 @@ function resetState() {
   currentPageNum = 1;
   totalPageCount = 1;
   pageWatermarks.clear();
+  fallbackConfig = null;
   const fileDisplayArea = document.getElementById('file-display-area');
   if (fileDisplayArea) fileDisplayArea.innerHTML = '';
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -234,12 +237,7 @@ function setupPageNavigation() {
     }
 
     if (!applyToAllPages && wasApplyAll) {
-      const config = getCurrentConfig();
-      for (let i = 1; i <= totalPageCount; i++) {
-        if (!pageWatermarks.has(i)) {
-          pageWatermarks.set(i, { ...config });
-        }
-      }
+      fallbackConfig = getCurrentConfig();
     }
   });
 }
@@ -339,9 +337,9 @@ function loadPageConfig(pageNum: number) {
   let config: PageWatermarkConfig;
 
   if (applyToAllPages) {
-    config = pageWatermarks.get(1) || getCurrentConfig();
+    config = pageWatermarks.get(1) || fallbackConfig || getCurrentConfig();
   } else {
-    config = pageWatermarks.get(pageNum) || getDefaultConfig();
+    config = pageWatermarks.get(pageNum) || fallbackConfig || getDefaultConfig();
   }
 
   watermarkType = config.type;
@@ -885,7 +883,7 @@ async function applyWatermark() {
       > = new Map();
 
       for (let i = 1; i <= totalPageCount; i++) {
-        const config = pageWatermarks.get(i);
+        const config = pageWatermarks.get(i) || fallbackConfig;
         if (!config) continue;
 
         const hasContent =
