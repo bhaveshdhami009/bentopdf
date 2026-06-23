@@ -44,13 +44,25 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
-// Polyfill Worker for jsdom
+// Mock Worker for tests / jsdom
 if (typeof globalThis.Worker === 'undefined') {
   class MockWorker {
     onmessage: any = null;
     onerror: any = null;
+    onmessageerror: any = null;
+
+    constructor() {}
+
     postMessage() {}
     terminate() {}
+
+    addEventListener() {}
+    removeEventListener() {}
+
+    dispatchEvent() {
+      return true;
+    }
   }
+
   globalThis.Worker = MockWorker as any;
 }
