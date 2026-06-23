@@ -269,9 +269,7 @@ async function deleteNodeById(nodeId: string) {
   const conns = editor
     .getConnections()
     .filter((c) => c.source === nodeId || c.target === nodeId);
-  for (const conn of conns) {
-    await editor.removeConnection(conn.id);
-  }
+  await Promise.all(conns.map((conn) => editor.removeConnection(conn.id)));
   await editor.removeNode(nodeId);
 
   if (selectedNodeId === nodeId) {
