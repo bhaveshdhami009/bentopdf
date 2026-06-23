@@ -430,7 +430,9 @@ const init = async () => {
     dom.toolGrid.insertBefore(searchResultsContainer, dom.toolGrid.firstChild);
 
     searchBar.addEventListener('input', () => {
-      const searchTerm = searchBar.value.toLowerCase().trim();
+      const searchTerm = (searchBar as HTMLInputElement).value
+        .toLowerCase()
+        .trim();
 
       if (!searchTerm) {
         searchResultsContainer.classList.add('hidden');
