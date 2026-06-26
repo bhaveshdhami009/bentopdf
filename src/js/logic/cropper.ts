@@ -139,12 +139,14 @@ function updatePageInfo() {
 }
 
 function enableControls() {
-  (document.getElementById('prev-page') as HTMLButtonElement).disabled =
+  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
+  document.getElementById('prev-page').disabled =
     cropperState.currentPageNum <= 1;
-  (document.getElementById('next-page') as HTMLButtonElement).disabled =
+  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
+  document.getElementById('next-page').disabled =
     cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
-  (document.getElementById('crop-button') as HTMLButtonElement).disabled =
-    false;
+  // @ts-expect-error TS(2339) FIXME: Property 'disabled' does not exist on type 'HTMLEl... Remove this comment to see the full error message
+  document.getElementById('crop-button').disabled = false;
 }
 
 /**
@@ -193,7 +195,8 @@ async function performMetadataCrop(
     const minY = Math.min(...pdfYs);
     const maxY = Math.max(...pdfYs);
 
-    const page = pdfToModify.getPages()[Number(pageNum) - 1];
+    // @ts-expect-error TS(2362) FIXME: The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
+    const page = pdfToModify.getPages()[pageNum - 1];
     page.setCropBox(minX, minY, maxX - minX, maxY - minY);
   }
 }

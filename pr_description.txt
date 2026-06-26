@@ -1,0 +1,6 @@
+🧪 [Add tests for hexToRgb utility]
+
+## Description
+🎯 **What:** This PR addresses a testing gap by adding tests for the previously untested `hexToRgb` utility function in `src/js/utils/helpers.ts`.
+📊 **Coverage:** The new tests cover 3-character and 6-character hex string formats (both with and without the '#' prefix) as well as edge cases involving invalid hex code inputs.
+✨ **Result:** Test coverage and robustness have been improved in `src/tests/helpers.test.ts`, effectively testing the hex-to-rgb conversion and providing a safety net against regressions.

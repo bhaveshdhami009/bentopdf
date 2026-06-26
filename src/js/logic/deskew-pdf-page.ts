@@ -180,18 +180,18 @@ async function processDeskew(): Promise<void> {
     const pdf = await initPyMuPDF();
     await pdf.load();
 
-    showLoader(`Deskewing ${selectedFiles.length} file(s)...`);
+    for (const file of selectedFiles) {
+      showLoader(`Deskewing ${file.name}...`);
 
-    await Promise.all(
-      selectedFiles.map(async (file) => {
-        const { pdf: resultPdf, result } = await pdf.deskewPdf(file, {
-          threshold,
-          dpi,
-        });
-        displayResults(result);
-        downloadFile(resultPdf, file.name);
-      })
-    );
+      const { pdf: resultPdf, result } = await pdf.deskewPdf(file, {
+        threshold,
+        dpi,
+      });
+
+      displayResults(result);
+
+      downloadFile(resultPdf, file.name);
+    }
 
     hideLoader();
     showAlert(

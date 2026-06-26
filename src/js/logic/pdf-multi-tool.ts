@@ -556,11 +556,9 @@ async function loadPdfs(files: File[]) {
 
         // Pre-fill allPages with placeholders to maintain order/state
         const startIndex = allPages.length;
-        allPages.length = startIndex + numPages;
-        const batchIdPrefix = generateId() + '-';
         for (let i = 0; i < numPages; i++) {
-          allPages[startIndex + i] = {
-            id: batchIdPrefix + i,
+          allPages.push({
+            id: generateId(),
             pdfIndex,
             pageIndex: i,
             rotation: 0,
@@ -569,7 +567,7 @@ async function loadPdfs(files: File[]) {
             pdfDoc,
             originalPageIndex: i,
             fileName: file.name,
-          };
+          });
         }
 
         await renderPagesProgressively(

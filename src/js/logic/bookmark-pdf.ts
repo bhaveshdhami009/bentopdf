@@ -2129,19 +2129,20 @@ async function extractExistingBookmarks(): Promise<BookmarkTree> {
       };
 
       if (item.items && item.items.length > 0) {
-        bookmark.children = await Promise.all(
-          item.items.map((childItem) => processOutlineItem(childItem))
-        );
+        for (const childItem of item.items) {
+          const childBookmark = await processOutlineItem(childItem);
+          bookmark.children.push(childBookmark);
+        }
       }
 
       return bookmark;
     }
 
     const result: BookmarkTree = [];
-    const topLevelBookmarks = await Promise.all(
-      outline.map((item) => processOutlineItem(item as PDFOutlineItem))
-    );
-    result.push(...topLevelBookmarks);
+    for (const item of outline) {
+      const bookmark = await processOutlineItem(item as PDFOutlineItem);
+      result.push(bookmark);
+    }
 
     return result;
   } catch (err) {

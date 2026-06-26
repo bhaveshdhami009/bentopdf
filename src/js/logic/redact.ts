@@ -1,10 +1,11 @@
 import { showLoader, hideLoader, showAlert } from '../ui.js';
 import { downloadFile } from '../utils/helpers.js';
 import { state } from '../state.js';
-const { PDFDocument, rgb } = (window as unknown as WindowWithPDFLib).PDFLib!;
 
 import type { RedactionRect } from '@/types';
-import type { WindowWithPDFLib } from '../types/utils-types.js';
+
+// @ts-expect-error TS(2339) FIXME: Property 'PDFLib' does not exist on type 'Window &... Remove this comment to see the full error message
+const { rgb } = window.PDFLib;
 
 export async function redact(redactions: RedactionRect[], canvasScale: number) {
   showLoader('Applying redactions...');

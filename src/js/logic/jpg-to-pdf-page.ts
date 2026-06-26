@@ -189,9 +189,10 @@ async function convertToPdf() {
 
     showLoader('Converting images to PDF...');
     const quality = getSelectedQuality();
-    const compressedFiles = await Promise.all(
-      files.map((file) => compressImageFile(file, quality))
-    );
+    const compressedFiles: File[] = [];
+    for (const file of files) {
+      compressedFiles.push(await compressImageFile(file, quality));
+    }
 
     const pdfBlob = await mupdf.imagesToPdf(compressedFiles);
 

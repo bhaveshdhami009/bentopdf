@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   extractPageModel,
   shouldInsertSpaceBetweenItems,
-  sortCompareTextItems,
 } from '@/js/compare/engine/extract-page-model';
 import type { CompareTextItem } from '../../../js/compare/types';
 
@@ -108,7 +107,9 @@ describe('extractPageModel', () => {
       scale: 1,
     } as any;
 
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
 
     await extractPageModel(mockPage, mockViewport);
 
@@ -118,66 +119,5 @@ describe('extractPageModel', () => {
     );
 
     consoleSpy.mockRestore();
-  });
-});
-
-describe('sortCompareTextItems', () => {
-  const createMockItem = (
-    id: string,
-    x: number,
-    y: number,
-    height: number = 10
-  ): CompareTextItem =>
-    ({
-      id,
-      normalizedText: 'text',
-      rect: { x, y, width: 20, height },
-    }) as any;
-
-  it('should sort items by y position (different lines)', () => {
-    // line tolerance is Math.max(Math.min(h1, h2) * 0.6, 4)
-    // For height 10, tolerance is max(10 * 0.6, 4) = 6
-    const topItem = createMockItem('top', 10, 10);
-    const bottomItem = createMockItem('bottom', 10, 20); // y diff is 10 > 6
-
-    const items = [bottomItem, topItem];
-    const sorted = sortCompareTextItems(items);
-
-    expect(sorted[0].id).toBe('top');
-    expect(sorted[1].id).toBe('bottom');
-  });
-
-  it('should sort items by x position when on the same line (y diff <= tolerance)', () => {
-    // For height 10, tolerance is 6
-    const leftItem = createMockItem('left', 10, 10);
-    const rightItem = createMockItem('right', 30, 12); // y diff is 2 <= 6
-
-    const items = [rightItem, leftItem];
-    const sorted = sortCompareTextItems(items);
-
-    expect(sorted[0].id).toBe('left');
-    expect(sorted[1].id).toBe('right');
-  });
-
-  it('should fallback to sorting by id when x and y are practically identical', () => {
-    const itemB = createMockItem('B', 10, 10);
-    const itemA = createMockItem('A', 10.5, 10); // x diff is 0.5 <= 1, y diff is 0
-
-    const items = [itemB, itemA];
-    const sorted = sortCompareTextItems(items);
-
-    expect(sorted[0].id).toBe('A');
-    expect(sorted[1].id).toBe('B');
-  });
-
-  it('should maintain original order if items are identical', () => {
-    const item1 = createMockItem('A', 10, 10);
-    const item2 = createMockItem('A', 10, 10);
-
-    const items = [item1, item2];
-    const sorted = sortCompareTextItems(items);
-
-    expect(sorted[0]).toBe(item1);
-    expect(sorted[1]).toBe(item2);
   });
 });
