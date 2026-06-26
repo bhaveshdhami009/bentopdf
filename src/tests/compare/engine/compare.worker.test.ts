@@ -51,7 +51,12 @@ describe('compare.worker', () => {
   it('should ignore messages from different origins', () => {
     onmessageHandler({
       origin: 'http://evil.com',
-      data: { type: 'diff', id: 1, beforeItems: [], afterItems: [] },
+      data: {
+        type: 'diff',
+        id: 1,
+        beforeItems: [] as CompareTextItem[],
+        afterItems: [],
+      },
     } as any);
 
     expect(mockPostMessage).not.toHaveBeenCalled();
@@ -73,7 +78,11 @@ describe('compare.worker', () => {
   it('should ignore invalid messages (no id)', () => {
     onmessageHandler({
       origin: 'http://localhost:3000',
-      data: { type: 'diff', beforeItems: [], afterItems: [] },
+      data: {
+        type: 'diff',
+        beforeItems: [] as CompareTextItem[],
+        afterItems: [],
+      },
     } as any);
 
     expect(mockPostMessage).not.toHaveBeenCalled();
@@ -86,7 +95,7 @@ describe('compare.worker', () => {
         type: 'diff',
         id: 1,
         beforeItems: 'not an array',
-        afterItems: [],
+        afterItems: [] as CompareTextItem[],
       },
     } as any);
 
@@ -126,7 +135,12 @@ describe('compare.worker', () => {
 
     onmessageHandler({
       origin: 'http://localhost:3000',
-      data: { type: 'diff', id: 42, beforeItems: [], afterItems: [] },
+      data: {
+        type: 'diff',
+        id: 42,
+        beforeItems: [] as CompareTextItem[],
+        afterItems: [],
+      },
     } as any);
 
     expect(diffTextRuns).toHaveBeenCalledWith([], []);
@@ -161,8 +175,8 @@ describe('compare.worker', () => {
     let typeChecks = 0;
     const sneakyData = {
       id: 1,
-      beforeItems: [],
-      afterItems: [],
+      beforeItems: [] as CompareTextItem[],
+      afterItems: [] as CompareTextItem[],
       get type() {
         typeChecks++;
         // 1st check in isValidMessage: m.type === 'diff'
@@ -190,7 +204,12 @@ describe('compare.worker', () => {
 
     onmessageHandler({
       origin: 'http://localhost:3000',
-      data: { type: 'diff', id: 44, beforeItems: [], afterItems: [] },
+      data: {
+        type: 'diff',
+        id: 44,
+        beforeItems: [] as CompareTextItem[],
+        afterItems: [],
+      },
     } as any);
 
     expect(mockPostMessage).toHaveBeenCalledWith({
