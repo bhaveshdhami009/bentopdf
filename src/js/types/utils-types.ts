@@ -28,6 +28,10 @@ export interface WindowWithI18next {
   };
 }
 
+export interface WindowWithPDFLib {
+  PDFLib?: typeof import('pdf-lib');
+}
+
 export interface GlobalScopeWithGhostscript {
   loadGS?: (config: { baseUrl: string }) => Promise<GhostscriptDynamicInstance>;
   GhostscriptWASM?: new (url: string) => GhostscriptDynamicInstance;
