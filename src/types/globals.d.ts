@@ -14,3 +14,7 @@ interface ImportMeta {
 
 declare const __SIMPLE_MODE__: boolean;
 declare const __DISABLED_TOOLS__: string[];
+
+interface Window {
+  PDFLib?: typeof import('pdf-lib');
+}

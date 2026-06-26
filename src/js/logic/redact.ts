@@ -1,10 +1,9 @@
 import { showLoader, hideLoader, showAlert } from '../ui.js';
 import { downloadFile } from '../utils/helpers.js';
 import { state } from '../state.js';
-const { PDFDocument, rgb } = (window as unknown as WindowWithPDFLib).PDFLib!;
+const { PDFDocument, rgb } = window.PDFLib!;
 
 import type { RedactionRect } from '@/types';
-import type { WindowWithPDFLib } from '../types/utils-types.js';
 
 export async function redact(redactions: RedactionRect[], canvasScale: number) {
   showLoader('Applying redactions...');
