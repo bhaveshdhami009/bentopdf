@@ -139,16 +139,34 @@ function updatePageInfo() {
 }
 
 function enableControls() {
-  (document.getElementById('prev-page') as HTMLButtonElement).disabled =
-    cropperState.currentPageNum <= 1;
-  (document.getElementById('next-page') as HTMLButtonElement).disabled =
-    cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
-  (document.getElementById('crop-button') as HTMLButtonElement).disabled =
-    false;
+  const prevBtn = document.getElementById(
+    'prev-page'
+  ) as HTMLButtonElement | null;
+  const nextBtn = document.getElementById(
+    'next-page'
+  ) as HTMLButtonElement | null;
+  const cropBtn = document.getElementById(
+    'crop-button'
+  ) as HTMLButtonElement | null;
+  const applyAllBtn = document.getElementById(
+    'applyAllBtn'
+  ) as HTMLButtonElement | null;
 
-  const applyAllBtn = document.getElementById('applyAllBtn');
+  if (prevBtn) {
+    prevBtn.disabled = cropperState.currentPageNum <= 1;
+  }
+
+  if (nextBtn) {
+    nextBtn.disabled =
+      cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
+  }
+
+  if (cropBtn) {
+    cropBtn.disabled = false;
+  }
+
   if (applyAllBtn) {
-    (applyAllBtn as HTMLButtonElement).disabled = true;
+    applyAllBtn.disabled = true;
   }
 }
 
