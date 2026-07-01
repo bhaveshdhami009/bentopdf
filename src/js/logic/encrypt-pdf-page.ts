@@ -268,3 +268,9 @@ document.addEventListener('DOMContentLoaded', function () {
     processBtn.addEventListener('click', encryptPdf);
   }
 });
+
+// Expose for testing
+export const _testExports = {
+  encryptPdf,
+  pageState,
+};
