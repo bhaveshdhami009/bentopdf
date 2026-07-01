@@ -29,12 +29,10 @@ async function preloadPyMuPDF(): Promise<void> {
 
   if (!isWasmAvailable('pymupdf')) {
     preloadState.pymupdf = PreloadStatus.UNAVAILABLE;
-    console.log('[Preloader] PyMuPDF not configured, skipping preload');
     return;
   }
 
   preloadState.pymupdf = PreloadStatus.LOADING;
-  console.log('[Preloader] Starting PyMuPDF preload...');
 
   try {
     const pymupdfBaseUrl = getWasmBaseUrl('pymupdf')!;
@@ -52,7 +50,6 @@ async function preloadPyMuPDF(): Promise<void> {
     });
     await pymupdfInstance.load();
     preloadState.pymupdf = PreloadStatus.READY;
-    console.log('[Preloader] PyMuPDF ready');
   } catch (e) {
     preloadState.pymupdf = PreloadStatus.ERROR;
     console.warn('[Preloader] PyMuPDF preload failed:', e);
@@ -64,12 +61,10 @@ async function preloadGhostscript(): Promise<void> {
 
   if (!isWasmAvailable('ghostscript')) {
     preloadState.ghostscript = PreloadStatus.UNAVAILABLE;
-    console.log('[Preloader] Ghostscript not configured, skipping preload');
     return;
   }
 
   preloadState.ghostscript = PreloadStatus.LOADING;
-  console.log('[Preloader] Starting Ghostscript WASM preload...');
 
   try {
     const { loadGsModule, setCachedGsModule } =
@@ -78,7 +73,6 @@ async function preloadGhostscript(): Promise<void> {
     const gsModule = await loadGsModule();
     setCachedGsModule(gsModule);
     preloadState.ghostscript = PreloadStatus.READY;
-    console.log('[Preloader] Ghostscript WASM ready');
   } catch (e) {
     preloadState.ghostscript = PreloadStatus.ERROR;
     console.warn('[Preloader] Ghostscript preload failed:', e);
@@ -94,8 +88,6 @@ function scheduleIdleTask(task: () => Promise<void>): void {
 }
 
 export function startBackgroundPreload(): void {
-  console.log('[Preloader] Scheduling background WASM preloads...');
-
   const libreOfficePages = [
     'word-to-pdf',
     'excel-to-pdf',
@@ -117,18 +109,11 @@ export function startBackgroundPreload(): void {
   );
 
   if (isLibreOfficePage) {
-    console.log(
-      '[Preloader] Skipping preloads on LibreOffice page to save memory'
-    );
     return;
   }
 
   scheduleIdleTask(async () => {
-    console.log('[Preloader] Starting sequential WASM preloads...');
-
     await preloadPyMuPDF();
     await preloadGhostscript();
-
-    console.log('[Preloader] Sequential preloads complete');
   });
 }
