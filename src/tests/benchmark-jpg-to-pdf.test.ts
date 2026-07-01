@@ -47,7 +47,6 @@ describe('Benchmark compression logic in jpg-to-pdf-page', () => {
     }
     const endSeq = performance.now();
     const timeSeq = endSeq - startSeq;
-    console.log(`Sequential: ${timeSeq}ms`);
 
     // 2. Simulate the new parallel code
     const startPar = performance.now();
@@ -56,7 +55,6 @@ describe('Benchmark compression logic in jpg-to-pdf-page', () => {
     );
     const endPar = performance.now();
     const timePar = endPar - startPar;
-    console.log(`Parallel: ${timePar}ms`);
 
     // Both should yield the same length array
     expect(compressedFilesSeq.length).toBe(files.length);
