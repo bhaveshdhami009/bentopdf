@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createLanguageSwitcher } from '@/js/i18n/language-switcher';
+import {
+  createLanguageSwitcher,
+  injectLanguageSwitcher,
+} from '@/js/i18n/language-switcher';
 import * as i18n from '@/js/i18n/i18n';
 
 // Mock the i18n module
@@ -193,5 +196,135 @@ describe('createLanguageSwitcher', () => {
     expect(enOption.classList.contains('hidden')).toBe(true);
     expect(frOption.classList.contains('hidden')).toBe(true);
     expect(emptyState.classList.contains('hidden')).toBe(false);
+  });
+});
+
+describe('injectLanguageSwitcher', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('should inject into simple mode container if it exists', () => {
+    document.body.innerHTML = `
+      <div id="simple-mode-language-switcher"></div>
+    `;
+
+    injectLanguageSwitcher();
+
+    const container = document.getElementById('simple-mode-language-switcher');
+    const switcher = container?.querySelector('#language-switcher');
+
+    expect(switcher).not.toBeNull();
+    expect(switcher?.tagName).toBe('DIV');
+  });
+
+  it('should return early if no simple mode container and no footer', () => {
+    injectLanguageSwitcher();
+    expect(document.body.innerHTML).toBe('');
+  });
+
+  it('should inject into footer next to social icons', () => {
+    document.body.innerHTML = `
+      <footer>
+        <div>
+          <h3>Follow Us</h3>
+          <div>
+            <div class="space-x-4">
+              <a href="#">Social 1</a>
+              <a href="#">Social 2</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    `;
+
+    injectLanguageSwitcher();
+
+    const followUsColumn = document.querySelector('h3')?.parentElement;
+    const wrapper = followUsColumn?.querySelector(
+      '.inline-flex.flex-col.gap-4'
+    );
+
+    expect(wrapper).not.toBeNull();
+
+    // Verify wrapper contains both social icons and switcher
+    const socialIcons = wrapper?.querySelector('.space-x-4');
+    const switcher = wrapper?.querySelector('#language-switcher');
+
+    expect(socialIcons).not.toBeNull();
+    expect(switcher).not.toBeNull();
+
+    // Verify specific classes applied to button
+    const button = switcher?.querySelector('button');
+    expect(button?.className).toContain('w-full');
+    expect(button?.className).toContain('text-gray-400');
+
+    // Verify specific classes applied to dropdown
+    const dropdown = switcher?.querySelector('div[role="menu"]');
+    expect(dropdown?.classList.contains('bottom-full')).toBe(true);
+    expect(dropdown?.classList.contains('mb-2')).toBe(true);
+    expect(dropdown?.classList.contains('w-full')).toBe(true);
+    expect(dropdown?.classList.contains('mt-2')).toBe(false);
+  });
+
+  it('should inject into footer directly if no social icons container', () => {
+    document.body.innerHTML = `
+      <footer>
+        <div>
+          <h3>Follow Us</h3>
+          <!-- No .space-x-4 container -->
+        </div>
+      </footer>
+    `;
+
+    injectLanguageSwitcher();
+
+    const followUsColumn = document.querySelector('h3')?.parentElement;
+    const switcherContainer = followUsColumn?.querySelector('.mt-4.w-full');
+
+    expect(switcherContainer).not.toBeNull();
+
+    const switcher = switcherContainer?.querySelector('#language-switcher');
+    expect(switcher).not.toBeNull();
+  });
+
+  it('should support alternative heading translations (German)', () => {
+    document.body.innerHTML = `
+      <footer>
+        <div>
+          <h3>Folgen Sie uns</h3>
+        </div>
+      </footer>
+    `;
+
+    injectLanguageSwitcher();
+
+    const followUsColumn = document.querySelector('h3')?.parentElement;
+    const switcherContainer = followUsColumn?.querySelector('.mt-4.w-full');
+
+    expect(switcherContainer).not.toBeNull();
+    expect(
+      switcherContainer?.querySelector('#language-switcher')
+    ).not.toBeNull();
+  });
+
+  it('should support alternative heading translations (Vietnamese)', () => {
+    document.body.innerHTML = `
+      <footer>
+        <div>
+          <h3>Theo dõi chúng tôi</h3>
+        </div>
+      </footer>
+    `;
+
+    injectLanguageSwitcher();
+
+    const followUsColumn = document.querySelector('h3')?.parentElement;
+    const switcherContainer = followUsColumn?.querySelector('.mt-4.w-full');
+
+    expect(switcherContainer).not.toBeNull();
+    expect(
+      switcherContainer?.querySelector('#language-switcher')
+    ).not.toBeNull();
   });
 });

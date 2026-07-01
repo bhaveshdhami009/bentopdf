@@ -1,0 +1,6 @@
+1. Update `WindowWithPDFLib` interface in `src/js/types/utils-types.ts`
+   - Extend `Window` interface globally instead of creating a separate interface `WindowWithPDFLib` to properly type `window.PDFLib`.
+   - Update `window.PDFLib` type definition in `src/types/globals.d.ts` since `src/types` seems to contain global declaration files.
+2. Remove explicit casts in `src/js/logic/redact.ts`.
+   - Change `const { PDFDocument, rgb } = (window as unknown as WindowWithPDFLib).PDFLib!;` to `const { PDFDocument, rgb } = window.PDFLib!;`.
+   - Remove unused import `WindowWithPDFLib`.

@@ -148,16 +148,25 @@ function enableControls() {
   const cropBtn = document.getElementById(
     'crop-button'
   ) as HTMLButtonElement | null;
+  const applyAllBtn = document.getElementById(
+    'applyAllBtn'
+  ) as HTMLButtonElement | null;
 
   if (prevBtn) {
     prevBtn.disabled = cropperState.currentPageNum <= 1;
   }
+
   if (nextBtn) {
     nextBtn.disabled =
       cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
   }
+
   if (cropBtn) {
     cropBtn.disabled = false;
+  }
+
+  if (applyAllBtn) {
+    applyAllBtn.disabled = true;
   }
 }
 
