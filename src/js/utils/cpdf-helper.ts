@@ -42,7 +42,6 @@ export async function isCpdfLoaded(): Promise<void> {
     script.src = cpdfUrl;
     script.onload = () => {
       cpdfLoaded = true;
-      console.log('[CPDF] Loaded from:', script.src);
       resolve();
     };
     script.onerror = () => {
