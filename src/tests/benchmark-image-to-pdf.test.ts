@@ -35,8 +35,6 @@ describe('Benchmark image processing loop', () => {
     }
     const endSequential = performance.now();
 
-    console.log(`Sequential time: ${endSequential - startSequential}ms`);
-
     const startParallel = performance.now();
     const processedFilesParallel = await Promise.all(
       files.map(async (file) => {
@@ -45,8 +43,6 @@ describe('Benchmark image processing loop', () => {
       })
     );
     const endParallel = performance.now();
-
-    console.log(`Parallel time: ${endParallel - startParallel}ms`);
 
     expect(processedFilesParallel).toEqual(processedFilesSequential);
     expect(endParallel - startParallel).toBeLessThan(
