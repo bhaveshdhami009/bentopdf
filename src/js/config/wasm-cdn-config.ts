@@ -6,9 +6,6 @@ export type WasmPackage = 'ghostscript' | 'pymupdf' | 'cpdf';
 export function getWasmBaseUrl(packageName: WasmPackage): string | undefined {
   const userUrl = WasmProvider.getUrl(packageName);
   if (userUrl) {
-    console.log(
-      `[WASM Config] Using configured URL for ${packageName}: ${userUrl}`
-    );
     return userUrl;
   }
 
@@ -35,7 +32,6 @@ export async function fetchWasmFile(
   }
 
   const url = baseUrl + fileName;
-  console.log(`[WASM] Fetching: ${url}`);
 
   const response = await fetch(url);
   if (!response.ok) {
