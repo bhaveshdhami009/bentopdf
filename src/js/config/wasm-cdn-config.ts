@@ -6,9 +6,6 @@ export type WasmPackage = 'ghostscript' | 'pymupdf' | 'cpdf';
 export function getWasmBaseUrl(packageName: WasmPackage): string | undefined {
   const userUrl = WasmProvider.getUrl(packageName);
   if (userUrl) {
-    console.log(
-      `[WASM Config] Using configured URL for ${packageName}: ${userUrl}`
-    );
     return userUrl;
   }
 
