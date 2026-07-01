@@ -39,7 +39,5 @@ describe('BMP to PDF Performance', () => {
     }
     const endPar = performance.now();
 
-    console.log(`Sequential: ${endSeq - startSeq}ms`);
-    console.log(`Parallel Conversion: ${endPar - startPar}ms`);
   });
 });
