@@ -145,6 +145,11 @@ function enableControls() {
     cropperState.currentPageNum >= cropperState.pdfDoc.numPages;
   (document.getElementById('crop-button') as HTMLButtonElement).disabled =
     false;
+
+  const applyAllBtn = document.getElementById('applyAllBtn');
+  if (applyAllBtn) {
+    (applyAllBtn as HTMLButtonElement).disabled = true;
+  }
 }
 
 /**
