@@ -47,10 +47,6 @@ describe('Benchmark: Pre-fill Pages', () => {
     }
     const newTime = performance.now() - start;
 
-    console.log(`Old approach time: ${oldTime}ms`);
-    console.log(`New approach time: ${newTime}ms`);
-    console.log(`Speedup: ${(oldTime / newTime).toFixed(2)}x`);
-
     // Only fail if it's exceptionally worse to avoid flakiness,
     // though realistically the new approach should always be faster.
     // expect(newTime).toBeLessThan(oldTime * 1.5);
