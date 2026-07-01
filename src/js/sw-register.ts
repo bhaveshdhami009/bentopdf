@@ -43,21 +43,12 @@ function sendTrustedHostsToSw(target: ServiceWorker | null | undefined) {
   target.postMessage({ type: 'SET_TRUSTED_CDN_HOSTS', hosts });
 }
 
-if (isDevelopment) {
-  console.log('[Dev Mode] Service Worker registration skipped in development');
-  console.log('Service Worker will be active in production builds');
-} else if ('serviceWorker' in navigator) {
+if (!isDevelopment && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     const swPath = `${import.meta.env.BASE_URL}sw.js`;
-    console.log('[SW] Registering Service Worker at:', swPath);
     navigator.serviceWorker
       .register(swPath)
       .then((registration) => {
-        console.log(
-          '[SW] Service Worker registered successfully:',
-          registration.scope
-        );
-
         sendTrustedHostsToSw(
           registration.active || registration.waiting || registration.installing
         );
@@ -80,8 +71,6 @@ if (isDevelopment) {
                 newWorker.state === 'installed' &&
                 navigator.serviceWorker.controller
               ) {
-                console.log('[SW] New version available! Reload to update.');
-
                 if (
                   confirm(
                     'A new version of BentoPDF is available. Reload to update?'
@@ -104,7 +93,6 @@ if (isDevelopment) {
     });
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('[SW] New service worker activated, reloading...');
       window.location.reload();
     });
   });
