@@ -17,17 +17,13 @@ describe('Blank Pages Benchmark', () => {
     const totalPages = 100;
 
     // Sequential
-    const startSeq = performance.now();
     const blankSeq = [];
     for (let i = 1; i <= totalPages; i++) {
       const isBlank = await simulatePageProcessing(i);
       if (isBlank) blankSeq.push(i);
     }
-    const endSeq = performance.now();
-    const seqTime = endSeq - startSeq;
 
     // Parallel Chunked
-    const startPar = performance.now();
     const blankPar = [];
     const chunkSize = 10;
 
@@ -47,12 +43,6 @@ describe('Blank Pages Benchmark', () => {
         if (res.isBlank) blankPar.push(res.pageNum);
       }
     }
-    const endPar = performance.now();
-    const parTime = endPar - startPar;
-
-    console.log(`Sequential: ${seqTime}ms`);
-    console.log(`Parallel (chunk of 10): ${parTime}ms`);
-    console.log(`Speedup: ${(seqTime / parTime).toFixed(2)}x`);
 
     expect(blankSeq).toEqual(blankPar);
   });

@@ -18,6 +18,11 @@ const languages = fs.readdirSync(LOCALES_DIR).filter((file) => {
   return fs.statSync(path.join(LOCALES_DIR, file)).isDirectory();
 });
 
+const TARGET_LANG = process.env.BUILD_LANG;
+const buildLanguages =
+  TARGET_LANG && languages.includes(TARGET_LANG) ? [TARGET_LANG] : languages;
+if (TARGET_LANG === 'en') buildLanguages.length = 0; // buildLanguages logic: we want to iterate over languages to build. But if target is en, we only want en.
+
 const toCamelCase = (str) => {
   return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 };
@@ -29,7 +34,7 @@ const KEY_MAPPING = {
 
 function loadAllTranslations() {
   const translations = {};
-  for (const lang of languages) {
+  for (const lang of buildLanguages) {
     if (lang === 'en') continue;
     const commonPath = path.join(LOCALES_DIR, `${lang}/common.json`);
     const toolsPath = path.join(LOCALES_DIR, `${lang}/tools.json`);
@@ -53,7 +58,6 @@ function loadEnglishTools() {
 
 const ENGLISH_TOOLS = loadEnglishTools();
 
-// TODO@ALAM: Let users build only a single language
 function buildUrl(langPrefix, pagePath) {
   const parts = [SITE_URL];
   if (BASE_PATH && BASE_PATH !== '') parts.push(BASE_PATH.replace(/^\//, ''));
@@ -366,7 +370,12 @@ async function generateI18nPages() {
   console.log('🌍 Generating i18n pages...');
   console.log(`   SITE_URL: ${SITE_URL}`);
   console.log(`   BASE_PATH: ${BASE_PATH || '/'}`);
-  console.log(`   Languages: ${languages.length} (${languages.join(', ')})`);
+  console.log(
+    `   Available Languages: ${languages.length} (${languages.join(', ')})`
+  );
+  console.log(
+    `   Building Languages: ${buildLanguages.length > 0 ? buildLanguages.join(', ') : 'en'}`
+  );
 
   if (!fs.existsSync(DIST_DIR)) {
     console.error('❌ dist directory not found. Please run build first.');
@@ -382,7 +391,7 @@ async function generateI18nPages() {
 
   console.log(`   Processing ${htmlFiles.length} HTML files...`);
 
-  for (const lang of languages) {
+  for (const lang of buildLanguages) {
     if (lang === 'en') continue;
     const langDir = path.join(DIST_DIR, lang);
     if (!fs.existsSync(langDir)) {
@@ -391,7 +400,8 @@ async function generateI18nPages() {
   }
 
   let processed = 0;
-  const total = htmlFiles.length * (languages.length - 1);
+  const total =
+    htmlFiles.length * buildLanguages.filter((l) => l !== 'en').length;
 
   for (const file of htmlFiles) {
     const filePath = path.join(DIST_DIR, file);
@@ -419,7 +429,12 @@ async function generateI18nPages() {
       await new Promise((resolve) => setImmediate(resolve));
     }
 
-    updateEnglishFile(filePath, originalContent);
+    // Only update English files if we are building all languages, or if the target language is English
+    const shouldUpdateEnglish =
+      !TARGET_LANG || TARGET_LANG === 'en' || TARGET_LANG === '';
+    if (shouldUpdateEnglish) {
+      updateEnglishFile(filePath, originalContent);
+    }
   }
 
   console.log('✅ i18n pages generated successfully!');
