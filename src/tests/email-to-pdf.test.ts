@@ -33,8 +33,8 @@ vi.mock('@kenjiuno/msgreader', () => {
       return mockState.data;
     }
   }
-  // Simulate the wrapped CJS interop shape that caused the original bug
-  // (`MsgReader is not a constructor`). The fix in email-to-pdf.ts unwraps it.
+  // Simulate the wrapped CJS interop shape that caused the original issue
+  // (`MsgReader is not a constructor`). The handling in email-to-pdf.ts unwraps it.
   return { default: { default: MockMsgReader } };
 });
 
