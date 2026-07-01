@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { PDFDocument as PDFLibDocument } from 'pdf-lib';
 import { performance } from 'perf_hooks';
 
@@ -39,5 +39,6 @@ describe('BMP to PDF Performance', () => {
     }
     const endPar = performance.now();
 
+    expect(endPar - startPar).toBeLessThan(endSeq - startSeq);
   });
 });
