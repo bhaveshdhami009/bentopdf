@@ -1,5 +1,6 @@
-🎯 **What:** The testing gap addressed is the lack of unit test coverage for the error boundary (the try-catch-finally block) inside the `renderPageThumbnails` function in `src/js/ui.ts`.
+🧹 [Code Health] Remove console.log statements in wasm-preloader.ts
 
-📊 **Coverage:** The new test suite correctly mocks required dependencies to simulate a rendering failure and comprehensively validates that errors are logged to the console, that `showAlert` modifies the DOM successfully to display a user-friendly modal, and that the loader modal is securely hidden in the `finally` block.
-
-✨ **Result:** A new testing file `src/tests/ui.test.ts` was added, which expands the codebase's test coverage specifically regarding front-end error handling and graceful degradation logic, making future refactoring safer.
+🎯 **What:** Removed all debug `console.log` statements in `src/js/utils/wasm-preloader.ts`.
+💡 **Why:** To improve code health by removing noisy debug logs that clutter the console.
+✅ **Verification:** Ran `npm run lint`, `npx prettier --write` and `npm run test:run` to ensure formatting is correct, no lint issues were introduced, and all tests pass.
+✨ **Result:** A cleaner console output in production and development environments, with improved maintainability of the wasm-preloader module.
