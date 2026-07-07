@@ -78,10 +78,15 @@ export class SvgToPdfNode extends BaseWorkflowNode {
 
     const doc = await PDFDocument.create();
 
-    for (const file of this.files) {
-      const svgText = await file.text();
-      const pngBytes = await this.svgToPng(svgText);
-      const pngImage = await doc.embedPng(pngBytes);
+    const pngImages = await Promise.all(
+      this.files.map(async (file) => {
+        const svgText = await file.text();
+        const pngBytes = await this.svgToPng(svgText);
+        return doc.embedPng(pngBytes);
+      })
+    );
+
+    for (const pngImage of pngImages) {
       const page = doc.addPage([pngImage.width, pngImage.height]);
       page.drawImage(pngImage, {
         x: 0,
