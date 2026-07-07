@@ -8,6 +8,7 @@ import {
   escapeHtml,
   sanitizeEmailHtml,
   getCleanPdfFilename,
+  truncateFilename,
   uint8ArrayToBase64,
 } from '../js/utils/helpers';
 
@@ -558,6 +559,40 @@ describe('helpers', () => {
       const result = sanitizeEmailHtml(largeHtml);
       expect(result).toContain('...</body></html>');
       expect(result.length).toBeLessThanOrEqual(maxHtmlSize + 20); // 100000 + length of suffix
+    });
+  });
+
+  describe('truncateFilename', () => {
+    it('should not truncate a filename shorter than maxLength', () => {
+      expect(truncateFilename('short.pdf', 20)).toBe('short.pdf');
+    });
+
+    it('should not truncate a filename exactly equal to maxLength', () => {
+      expect(truncateFilename('exact_len.pdf', 13)).toBe('exact_len.pdf');
+    });
+
+    it('should truncate a longer filename and preserve the extension', () => {
+      expect(truncateFilename('very_long_filename_indeed.pdf', 15)).toBe(
+        'very_lon....pdf'
+      );
+    });
+
+    it('should truncate a longer filename without an extension', () => {
+      expect(truncateFilename('very_long_filename_no_extension', 15)).toBe(
+        'very_long_fi...'
+      );
+    });
+
+    it('should handle cases where available length is <= 0 (e.g. extension itself is too long)', () => {
+      expect(truncateFilename('test.superlongextension', 10)).toBe(
+        'test.su...'
+      );
+    });
+
+    it('should use the default maxLength (25) if not provided', () => {
+      // 25 chars max
+      const name25 = 'abcdefghijklmnopqrstuv.pdf'; // 26 chars
+      expect(truncateFilename(name25)).toBe('abcdefghijklmnopqr....pdf');
     });
   });
 });
