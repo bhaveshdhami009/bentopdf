@@ -1033,37 +1033,49 @@ async function handleInsertPdf(e: Event) {
     updatePageNumbers();
     renderSplitMarkers();
 
-    // Render pages progressively
-    for (let i = 0; i < numPages; i++) {
-      const globalIndex = insertAfterIndex + 1 + i;
-
-      // Render page
-      const canvas = await renderPageToCanvas(pdfjsDoc, i + 1);
-
-      // Update data
-      if (allPages[globalIndex]) {
-        allPages[globalIndex].canvas = canvas;
-
-        // Update UI if card exists
-        const pagesContainer = document.getElementById('pages-container');
-        const card = pagesContainer?.querySelector(
-          `div[data-page-index="${globalIndex}"]`
+    // Render pages progressively in chunks to avoid memory strain while improving speed
+    const CHUNK_SIZE = 5;
+    for (let i = 0; i < numPages; i += CHUNK_SIZE) {
+      const chunk = [];
+      for (let j = 0; j < CHUNK_SIZE && i + j < numPages; j++) {
+        const pageIndex = i + j;
+        const globalIndex = insertAfterIndex + 1 + pageIndex;
+        chunk.push(
+          renderPageToCanvas(pdfjsDoc, pageIndex + 1).then((canvas) => ({
+            globalIndex,
+            canvas,
+          }))
         );
-        if (card) {
-          const preview =
-            card.querySelector('.bg-gray-700') ||
-            card.querySelector('.bg-white');
-          if (preview) {
-            // Re-create the preview content
-            preview.innerHTML = '';
-            preview.className =
-              'bg-white rounded mb-2 overflow-hidden w-full flex items-center justify-center relative h-36 sm:h-64';
+      }
 
-            const previewCanvas = canvas;
-            previewCanvas.className = 'max-w-full max-h-full object-contain';
-            previewCanvas.style.transform = `rotate(${allPages[globalIndex].visualRotation}deg)`;
-            previewCanvas.style.transition = 'transform 0.2s ease';
-            preview.appendChild(previewCanvas);
+      const results = await Promise.all(chunk);
+
+      for (const { globalIndex, canvas } of results) {
+        // Update data
+        if (allPages[globalIndex]) {
+          allPages[globalIndex].canvas = canvas;
+
+          // Update UI if card exists
+          const pagesContainer = document.getElementById('pages-container');
+          const card = pagesContainer?.querySelector(
+            `div[data-page-index="${globalIndex}"]`
+          );
+          if (card) {
+            const preview =
+              card.querySelector('.bg-gray-700') ||
+              card.querySelector('.bg-white');
+            if (preview) {
+              // Re-create the preview content
+              preview.innerHTML = '';
+              preview.className =
+                'bg-white rounded mb-2 overflow-hidden w-full flex items-center justify-center relative h-36 sm:h-64';
+
+              const previewCanvas = canvas;
+              previewCanvas.className = 'max-w-full max-h-full object-contain';
+              previewCanvas.style.transform = `rotate(${allPages[globalIndex].visualRotation}deg)`;
+              previewCanvas.style.transition = 'transform 0.2s ease';
+              preview.appendChild(previewCanvas);
+            }
           }
         }
       }
