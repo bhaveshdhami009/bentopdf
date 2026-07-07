@@ -275,6 +275,18 @@ describe('helpers', () => {
   describe('parsePageRanges', () => {
     const totalPages = 10;
 
+    it('should return all pages for null', () => {
+      expect(parsePageRanges(null as unknown as string, totalPages)).toEqual([
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ]);
+    });
+
+    it('should return all pages for undefined', () => {
+      expect(
+        parsePageRanges(undefined as unknown as string, totalPages)
+      ).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    });
+
     it('should return all pages for empty string', () => {
       expect(parsePageRanges('', totalPages)).toEqual([
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
