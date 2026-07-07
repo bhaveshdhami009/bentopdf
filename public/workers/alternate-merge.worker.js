@@ -1,5 +1,16 @@
 let cpdfLoaded = false;
 
+function isUrlAllowed(urlStr) {
+  try {
+    const url = new URL(urlStr, location.href);
+    const allowedHosts = [location.hostname, 'cdn.jsdelivr.net'];
+    return allowedHosts.includes(url.hostname);
+  } catch (e) {
+    return false;
+  }
+}
+
+
 function loadCpdf(cpdfUrl) {
   if (cpdfLoaded) return Promise.resolve();
 
@@ -7,6 +18,12 @@ function loadCpdf(cpdfUrl) {
     if (typeof coherentpdf !== 'undefined') {
       cpdfLoaded = true;
       resolve();
+      return;
+    }
+
+
+    if (!isUrlAllowed(cpdfUrl)) {
+      reject(new Error('Untrusted CoherentPDF URL: ' + cpdfUrl));
       return;
     }
 
