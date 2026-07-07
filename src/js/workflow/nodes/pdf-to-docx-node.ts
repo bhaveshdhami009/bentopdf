@@ -33,13 +33,19 @@ export class PdfToDocxNode extends BaseWorkflowNode {
     } else {
       const JSZip = (await import('jszip')).default;
       const zip = new JSZip();
-      for (const pdf of allPdfs) {
-        const blob = new Blob([new Uint8Array(pdf.bytes)], {
-          type: 'application/pdf',
-        });
-        const docxBlob = await pymupdf.pdfToDocx(blob);
-        const name = pdf.filename.replace(/\.pdf$/i, '') + '.docx';
-        const arrayBuffer = await docxBlob.arrayBuffer();
+      const docxResults = await Promise.all(
+        allPdfs.map(async (pdf) => {
+          const blob = new Blob([new Uint8Array(pdf.bytes)], {
+            type: 'application/pdf',
+          });
+          const docxBlob = await pymupdf.pdfToDocx(blob);
+          const name = pdf.filename.replace(/\.pdf$/i, '') + '.docx';
+          const arrayBuffer = await docxBlob.arrayBuffer();
+          return { name, arrayBuffer };
+        })
+      );
+
+      for (const { name, arrayBuffer } of docxResults) {
         zip.file(name, arrayBuffer);
       }
       const zipBlob = await zip.generateAsync({ type: 'blob' });

@@ -129,15 +129,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const zip = new JSZip();
         const usedNames = new Set<string>();
 
-        for (let i = 0; i < state.files.length; i++) {
-          const file = state.files[i];
-          showLoader(
-            `Converting ${i + 1}/${state.files.length}: ${file.name}...`
-          );
+        showLoader(
+          `Converting ${state.files.length} PDF(s) to DOCX in parallel...`
+        );
+        const docxResults = await Promise.all(
+          state.files.map(async (file) => {
+            const docxBlob = await pymupdf.pdfToDocx(file);
+            const baseName = file.name.replace(/\.pdf$/i, '');
+            const arrayBuffer = await docxBlob.arrayBuffer();
+            return { baseName, arrayBuffer };
+          })
+        );
 
-          const docxBlob = await pymupdf.pdfToDocx(file);
-          const baseName = file.name.replace(/\.pdf$/i, '');
-          const arrayBuffer = await docxBlob.arrayBuffer();
+        for (const { baseName, arrayBuffer } of docxResults) {
           const zipEntryName = deduplicateFileName(
             `${baseName}.docx`,
             usedNames
