@@ -112,10 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = state.files[0];
         showLoader(`Converting ${file.name}...`);
 
-        const docxBlob = await pymupdf.pdfToDocx(file);
         const outName = file.name.replace(/\.pdf$/i, '') + '.docx';
 
-        downloadFile(docxBlob, outName);
+        downloadFile(await pymupdf.pdfToDocx(file), outName);
         hideLoader();
 
         showAlert(
@@ -135,9 +134,10 @@ document.addEventListener('DOMContentLoaded', () => {
             `Converting ${i + 1}/${state.files.length}: ${file.name}...`
           );
 
-          const docxBlob = await pymupdf.pdfToDocx(file);
           const baseName = file.name.replace(/\.pdf$/i, '');
-          const arrayBuffer = await docxBlob.arrayBuffer();
+          const arrayBuffer = await (
+            await pymupdf.pdfToDocx(file)
+          ).arrayBuffer();
           const zipEntryName = deduplicateFileName(
             `${baseName}.docx`,
             usedNames
