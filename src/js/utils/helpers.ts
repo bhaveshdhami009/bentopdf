@@ -392,6 +392,86 @@ export function sanitizeEmailHtml(html: string): string {
  */
 export function formatRawDate(raw: string): string {
   try {
+    // Check for PDF date format first: D:YYYYMMDDHHmmSSOHH'mm'
+    if (raw.startsWith('D:')) {
+      // Basic PDF date validation D:YYYYMMDD...
+      if (raw.length >= 10) {
+        try {
+          const year = raw.substring(2, 6);
+          const month = raw.substring(6, 8);
+          const day = raw.substring(8, 10);
+          const hour = raw.substring(10, 12) || '00';
+          const minute = raw.substring(12, 14) || '00';
+          const second = raw.substring(14, 16) || '00';
+
+          let tzOffset = 'Z';
+          if (raw.length > 16) {
+            const tzSign = raw.charAt(16);
+            if (tzSign === '+' || tzSign === '-' || tzSign === 'Z') {
+              if (tzSign === 'Z') {
+                tzOffset = 'Z';
+              } else {
+                const tzHour = raw.substring(17, 19) || '00';
+                const tzMinuteMatch = raw.match(/'(\d{2})'/);
+                const tzMinute = tzMinuteMatch
+                  ? tzMinuteMatch[1]
+                  : raw.substring(20, 22).replace(/[^0-9]/g, '') || '00';
+                tzOffset = `${tzSign}${tzHour}:${tzMinute.padStart(2, '0')}`;
+              }
+            }
+          }
+
+          // Parse without timezone to get local values
+          const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+          // We treat the date string as UTC so we get exactly the components we parsed out of it
+          const dateObj = new Date(dateStr + 'Z');
+
+          if (!isNaN(dateObj.getTime())) {
+            const days = [
+              'Sunday',
+              'Monday',
+              'Tuesday',
+              'Wednesday',
+              'Thursday',
+              'Friday',
+              'Saturday',
+            ];
+            const months = [
+              'January',
+              'February',
+              'March',
+              'April',
+              'May',
+              'June',
+              'July',
+              'August',
+              'September',
+              'October',
+              'November',
+              'December',
+            ];
+
+            const dayName = days[dateObj.getUTCDay()];
+            const monthName = months[dateObj.getUTCMonth()];
+            const dom = dateObj.getUTCDate();
+            const y = dateObj.getUTCFullYear();
+
+            let h = dateObj.getUTCHours();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? h : 12;
+            const m = dateObj.getUTCMinutes().toString().padStart(2, '0');
+
+            const formattedTz = `UTC${tzOffset !== 'Z' ? tzOffset : '+00:00'}`;
+
+            return `${dayName}, ${monthName} ${dom}, ${y} at ${h}:${m} ${ampm} (${formattedTz})`;
+          }
+        } catch {
+          // If parsing as Date fails, fall back
+        }
+      }
+    }
+
     const match = raw.match(
       /([A-Za-z]{3}),\s+(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?\s+([+-]\d{4})/
     );

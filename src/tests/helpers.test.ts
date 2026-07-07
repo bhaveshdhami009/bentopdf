@@ -8,6 +8,7 @@ import {
   escapeHtml,
   sanitizeEmailHtml,
   getCleanPdfFilename,
+  formatRawDate,
   uint8ArrayToBase64,
 } from '../js/utils/helpers';
 
@@ -333,6 +334,44 @@ describe('helpers', () => {
 
     it('should skip non-numeric values', () => {
       expect(parsePageRanges('1,abc,5', totalPages)).toEqual([0, 4]);
+    });
+  });
+
+  describe('formatRawDate', () => {
+    it("should format a standard PDF date string D:YYYYMMDDHHmmSSOHH'mm'", () => {
+      expect(formatRawDate("D:20231024153000-04'00'")).toBe(
+        'Tuesday, October 24, 2023 at 3:30 PM (UTC-04:00)'
+      );
+    });
+
+    it('should format a PDF date string with Z (UTC)', () => {
+      expect(formatRawDate('D:20240101120000Z')).toBe(
+        'Monday, January 1, 2024 at 12:00 PM (UTC+00:00)'
+      );
+    });
+
+    it('should format a PDF date string missing seconds or timezone (malformed)', () => {
+      // Missing seconds and timezone, should default to 00 and UTC
+      expect(formatRawDate('D:202205150930')).toBe(
+        'Sunday, May 15, 2022 at 9:30 AM (UTC+00:00)'
+      );
+    });
+
+    it('should format a PDF date string with positive timezone', () => {
+      expect(formatRawDate("D:20231225081530+02'30'")).toBe(
+        'Monday, December 25, 2023 at 8:15 AM (UTC+02:30)'
+      );
+    });
+
+    it('should fall back to standard RFC 2822 date string with seconds', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 20:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 8:37 PM (UTC+02:00)'
+      );
+    });
+
+    it('should return the raw string if it cannot be parsed at all', () => {
+      const invalidDate = 'Not a real date string';
+      expect(formatRawDate(invalidDate)).toBe(invalidDate);
     });
   });
 
