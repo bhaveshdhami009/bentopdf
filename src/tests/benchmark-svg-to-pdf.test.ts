@@ -8,6 +8,8 @@ vi.mock('rete', () => {
       Output: class {},
       Socket: class {},
       Node: class {
+        outputs: any;
+        inputs: any;
         constructor() {
           this.outputs = {};
           this.inputs = {};
