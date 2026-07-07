@@ -394,6 +394,7 @@ export async function merge() {
       files: filesToMerge,
       jobs: jobs,
       cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+      trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
       retainPageLabels: retainCheckbox?.checked ?? false,
     };
 

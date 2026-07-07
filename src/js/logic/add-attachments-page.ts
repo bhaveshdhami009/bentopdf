@@ -267,6 +267,7 @@ async function addAttachments() {
       attachmentLevel: attachmentLevel,
       pageRange: pageRange,
       cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+      trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
     };
 
     const transferables = [pdfBuffer, ...attachmentBuffers];

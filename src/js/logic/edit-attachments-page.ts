@@ -236,6 +236,7 @@ async function loadAttachments() {
       fileBuffer: fileBuffer,
       fileName: pageState.file.name,
       cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+      trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
     };
 
     worker.postMessage(message, [fileBuffer]);
@@ -275,6 +276,7 @@ async function saveChanges() {
       fileName: pageState.file.name,
       attachmentsToRemove: Array.from(pageState.attachmentsToRemove),
       cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+      trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
     };
 
     worker.postMessage(message, [fileBuffer]);

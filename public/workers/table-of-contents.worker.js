@@ -1,6 +1,6 @@
 let cpdfLoaded = false;
 
-function loadCpdf(cpdfUrl) {
+function loadCpdf(cpdfUrl, trustedHosts) {
   if (cpdfLoaded) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
@@ -11,6 +11,10 @@ function loadCpdf(cpdfUrl) {
     }
 
     try {
+      const host = new URL(cpdfUrl, self.location.origin).hostname;
+      if (!trustedHosts || !trustedHosts.includes(host)) {
+        throw new Error('Untrusted CoherentPDF URL host: ' + host);
+      }
       self.importScripts(cpdfUrl);
       cpdfLoaded = true;
       resolve();
@@ -69,7 +73,7 @@ function generateTableOfContentsInWorker(
 }
 
 self.onmessage = async function (e) {
-  const { cpdfUrl } = e.data;
+  const { cpdfUrl, trustedHosts } = e.data;
 
   if (!cpdfUrl) {
     self.postMessage({
@@ -81,7 +85,7 @@ self.onmessage = async function (e) {
   }
 
   try {
-    await loadCpdf(cpdfUrl);
+    await loadCpdf(cpdfUrl, trustedHosts);
   } catch (error) {
     self.postMessage({
       status: 'error',

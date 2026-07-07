@@ -5,6 +5,7 @@ interface GetAttachmentsMessage {
   fileBuffer: ArrayBuffer;
   fileName: string;
   cpdfUrl?: string;
+  trustedHosts?: string[];
 }
 
 interface EditAttachmentsMessage {
