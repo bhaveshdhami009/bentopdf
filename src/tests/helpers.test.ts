@@ -9,6 +9,7 @@ import {
   sanitizeEmailHtml,
   getCleanPdfFilename,
   uint8ArrayToBase64,
+  formatIsoDate,
 } from '../js/utils/helpers';
 
 describe('helpers', () => {
@@ -546,6 +547,29 @@ describe('helpers', () => {
       const result = sanitizeEmailHtml(largeHtml);
       expect(result).toContain('...</body></html>');
       expect(result.length).toBeLessThanOrEqual(maxHtmlSize + 20); // 100000 + length of suffix
+    });
+  });
+
+  describe('formatIsoDate', () => {
+    it('should return the original value if it is not a valid string', () => {
+      expect(formatIsoDate('')).toBe('');
+      // @ts-ignore: testing invalid type
+      expect(formatIsoDate(null)).toBe(null);
+      // @ts-ignore: testing invalid type
+      expect(formatIsoDate(undefined)).toBe(undefined);
+      // @ts-ignore: testing invalid type
+      expect(formatIsoDate(123)).toBe(123);
+    });
+
+    it('should return the original string if parsing fails', () => {
+      expect(formatIsoDate('not-a-date')).toBe('not-a-date');
+      expect(formatIsoDate('2023-13-45T00:00:00Z')).toBe('2023-13-45T00:00:00Z');
+    });
+
+    it('should format a valid ISO 8601 date string', () => {
+      const isoDate = '2008-02-21T17:15:56-08:00';
+      const expected = new Date(isoDate).toLocaleString();
+      expect(formatIsoDate(isoDate)).toBe(expected);
     });
   });
 });
