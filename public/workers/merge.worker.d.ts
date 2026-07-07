@@ -19,6 +19,8 @@ interface MergeMessage {
   files: MergeFile[];
   jobs: MergeJob[];
   cpdfUrl?: string;
+  trustedHosts?: string[];
+  retainPageLabels?: boolean;
 }
 
 interface MergeSuccessResponse {

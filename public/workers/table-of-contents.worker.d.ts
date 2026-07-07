@@ -8,6 +8,7 @@ interface GenerateTOCMessage {
   fontFamily: number;
   addBookmark: boolean;
   cpdfUrl?: string;
+  trustedHosts?: string[];
 }
 
 interface TOCSuccessResponse {
