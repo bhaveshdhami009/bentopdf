@@ -160,6 +160,48 @@ describe('deduplicateFileName', () => {
     expect(deduplicateFileName('.', usedNames)).toBe('.');
     expect(deduplicateFileName('.', usedNames)).toBe('. (1)');
   });
+
+  describe('File Collision Logic', () => {
+    it('should resolve cascading collisions correctly', () => {
+      const usedNames = new Set<string>();
+      // Pre-fill with confusing names
+      usedNames.add('data.csv');
+      usedNames.add('data (1).csv');
+      usedNames.add('data (2).csv');
+      usedNames.add('data (3).csv');
+
+      expect(deduplicateFileName('data.csv', usedNames)).toBe('data (4).csv');
+      expect(deduplicateFileName('data.csv', usedNames)).toBe('data (5).csv');
+    });
+
+    it('should handle collisions when base name contains parentheses', () => {
+      const usedNames = new Set<string>();
+      expect(deduplicateFileName('report (final).pdf', usedNames)).toBe(
+        'report (final).pdf'
+      );
+      expect(deduplicateFileName('report (final).pdf', usedNames)).toBe(
+        'report (final) (1).pdf'
+      );
+      expect(deduplicateFileName('report (final).pdf', usedNames)).toBe(
+        'report (final) (2).pdf'
+      );
+    });
+
+    it('should handle collisions when the original filename matches a generated duplicate of another file', () => {
+      const usedNames = new Set<string>();
+      deduplicateFileName('file (1).pdf', usedNames);
+      deduplicateFileName('file.pdf', usedNames); // -> file.pdf
+      expect(deduplicateFileName('file.pdf', usedNames)).toBe('file (2).pdf');
+    });
+
+    it('should correctly handle generating a duplicate that itself collides with another base name', () => {
+      const usedNames = new Set<string>();
+      deduplicateFileName('file.pdf', usedNames); // 'file.pdf'
+      deduplicateFileName('file.pdf', usedNames); // 'file (1).pdf'
+      deduplicateFileName('file (1).pdf', usedNames); // 'file (1) (1).pdf'
+      expect(usedNames.has('file (1) (1).pdf')).toBe(true);
+    });
+  });
 });
 
 describe('makeUniqueFileKey', () => {
