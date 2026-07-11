@@ -10,9 +10,61 @@ import {
   getCleanPdfFilename,
   truncateFilename,
   uint8ArrayToBase64,
+  formatRawDate,
 } from '../js/utils/helpers';
 
 describe('helpers', () => {
+  describe('formatRawDate', () => {
+    it('should format a standard RFC 2822 date string correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 20:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 8:37 PM (UTC+02:00)'
+      );
+    });
+
+    it('should format an AM time correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 08:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 8:37 AM (UTC+02:00)'
+      );
+    });
+
+    it('should handle 12 PM (noon) correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 12:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 12:37 PM (UTC+02:00)'
+      );
+    });
+
+    it('should handle midnight correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 00:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 12:37 AM (UTC+02:00)'
+      );
+    });
+
+    it('should format a standard PDF date string correctly', () => {
+      expect(formatRawDate("D:20170108203744+02'00'")).toBe(
+        'Sunday, January 8, 2017 at 8:37 PM (UTC+02:00)'
+      );
+    });
+
+    it('should format a PDF date string with Z correctly', () => {
+      expect(formatRawDate('D:20170108203744Z')).toBe(
+        'Sunday, January 8, 2017 at 8:37 PM (UTC)'
+      );
+    });
+
+    it('should return the original string if it is a malformed PDF date', () => {
+      expect(formatRawDate('D:2017010820374')).toBe('D:2017010820374');
+    });
+
+    it('should return the original string if it is malformed', () => {
+      expect(formatRawDate('Invalid Date String')).toBe('Invalid Date String');
+    });
+
+    it('should return the original input if it throws an error (e.g. passing null)', () => {
+      // @ts-expect-error Testing error case
+      expect(formatRawDate(null)).toBe(null);
+    });
+  });
+
   describe('escapeHtml', () => {
     it('should return empty string if input is empty', () => {
       expect(escapeHtml('')).toBe('');
