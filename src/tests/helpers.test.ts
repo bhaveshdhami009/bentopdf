@@ -60,8 +60,7 @@ describe('helpers', () => {
     });
 
     it('should return the original input if it throws an error (e.g. passing null)', () => {
-      // @ts-expect-error Testing error case
-      expect(formatRawDate(null)).toBe(null);
+      expect(formatRawDate(null as unknown as string)).toBe(null);
     });
   });
 
