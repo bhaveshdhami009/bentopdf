@@ -168,18 +168,21 @@ function hideLoading() {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('PDF Multi Tool: DOMContentLoaded');
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+      console.log('PDF Multi Tool: DOMContentLoaded');
     initializeTool();
   });
 } else {
-  console.log(
-    'PDF Multi Tool: DOMContentLoaded already fired, initializing immediately'
-  );
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+    console.log(
+      'PDF Multi Tool: DOMContentLoaded already fired, initializing immediately'
+    );
   initializeTool();
 }
 
 function initializeTool() {
-  console.log('PDF Multi Tool: Initializing...');
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+    console.log('PDF Multi Tool: Initializing...');
   createIcons({ icons });
 
   initializeGlobalShortcuts();
@@ -189,7 +192,8 @@ function initializeTool() {
   });
 
   document.getElementById('upload-pdfs-btn')?.addEventListener('click', () => {
-    console.log('Upload button clicked, isRendering:', isRendering);
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+      console.log('Upload button clicked, isRendering:', isRendering);
     if (isRendering) {
       showModal(
         t('multiTool.pleaseWait'),
@@ -499,7 +503,8 @@ async function loadPdfs(files: File[]) {
   if (!pagesContainer) return;
 
   isRendering = true;
-  console.log('PDF Multi Tool: Starting render, isRendering set to true');
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+    console.log('PDF Multi Tool: Starting render, isRendering set to true');
   renderCancelled = false;
 
   // Cleanup previous observers
@@ -515,7 +520,8 @@ async function loadPdfs(files: File[]) {
         let arrayBuffer: ArrayBuffer;
 
         try {
-          console.log(`Repairing ${file.name}...`);
+          if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+            console.log(`Repairing ${file.name}...`);
           const loadingText = document.getElementById('loading-text');
           if (loadingText)
             loadingText.textContent = `Repairing ${file.name}...`;
@@ -523,7 +529,8 @@ async function loadPdfs(files: File[]) {
           const repairedData = await repairPdfFile(file);
           if (repairedData) {
             arrayBuffer = repairedData.buffer as ArrayBuffer;
-            console.log(`Successfully repaired ${file.name} before loading.`);
+            if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+              console.log(`Successfully repaired ${file.name} before loading.`);
           } else {
             console.warn(
               `Repair returned null for ${file.name}, using original file.`
@@ -614,9 +621,10 @@ async function loadPdfs(files: File[]) {
   } finally {
     hideLoading();
     isRendering = false;
-    console.log(
-      'PDF Multi Tool: Render finished/cancelled, isRendering set to false'
-    );
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+      console.log(
+        'PDF Multi Tool: Render finished/cancelled, isRendering set to false'
+      );
     if (renderCancelled) {
       renderCancelled = false;
     }
