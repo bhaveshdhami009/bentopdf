@@ -128,24 +128,58 @@ document.addEventListener('DOMContentLoaded', () => {
         const zip = new JSZip();
         const usedNames = new Set<string>();
 
-        for (let i = 0; i < state.files.length; i++) {
-          const file = state.files[i];
+        // Use parallel conversion for small batches and sequential for large ones.
+        const PARALLEL_LIMIT = 4;
+
+        if (state.files.length <= PARALLEL_LIMIT) {
           showLoader(
-            `Converting ${i + 1}/${state.files.length}: ${file.name}...`
+            `Converting ${state.files.length} PDF(s) in parallel...`
           );
 
-          const baseName = file.name.replace(/\.pdf$/i, '');
-          const arrayBuffer = await (
-            await pymupdf.pdfToDocx(file)
-          ).arrayBuffer();
-          const zipEntryName = deduplicateFileName(
-            `${baseName}.docx`,
-            usedNames
+          const results = await Promise.all(
+            state.files.map(async (file, index) => {
+              showLoader(
+                `Converting ${index + 1}/${state.files.length}: ${file.name}...`
+              );
+
+              const docxBlob = await pymupdf.pdfToDocx(file);
+
+              return {
+                baseName: file.name.replace(/\.pdf$/i, ''),
+                arrayBuffer: await docxBlob.arrayBuffer(),
+              };
+            })
           );
-          zip.file(zipEntryName, arrayBuffer);
+
+          for (const { baseName, arrayBuffer } of results) {
+            const zipEntryName = deduplicateFileName(
+              `${baseName}.docx`,
+              usedNames
+            );
+
+            zip.file(zipEntryName, arrayBuffer);
+          }
+        } else {
+          for (let i = 0; i < state.files.length; i++) {
+            const file = state.files[i];
+
+            showLoader(
+              `Converting ${i + 1}/${state.files.length}: ${file.name}...`
+            );
+
+            const docxBlob = await pymupdf.pdfToDocx(file);
+
+            const zipEntryName = deduplicateFileName(
+              `${file.name.replace(/\.pdf$/i, '')}.docx`,
+              usedNames
+            );
+
+            zip.file(zipEntryName, await docxBlob.arrayBuffer());
+          }
         }
 
         showLoader('Creating ZIP archive...');
+
         const zipBlob = await zip.generateAsync({ type: 'blob' });
 
         downloadFile(zipBlob, 'converted-documents.zip');
