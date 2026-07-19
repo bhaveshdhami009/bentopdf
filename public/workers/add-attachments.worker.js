@@ -11,6 +11,20 @@ function loadCpdf(cpdfUrl) {
     }
 
     try {
+      const parsedUrl = new URL(cpdfUrl, self.location.origin);
+      let isAllowed = false;
+      if (parsedUrl.hostname === self.location.hostname) {
+        isAllowed = true;
+      } else if (
+        parsedUrl.hostname === 'cdn.jsdelivr.net' &&
+        parsedUrl.pathname.startsWith('/npm/coherentpdf@')
+      ) {
+        isAllowed = true;
+      }
+
+      if (!isAllowed) {
+        throw new Error('Untrusted script URL: ' + parsedUrl.href);
+      }
       self.importScripts(cpdfUrl);
       cpdfLoaded = true;
       resolve();
