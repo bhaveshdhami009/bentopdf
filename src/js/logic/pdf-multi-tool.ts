@@ -168,18 +168,21 @@ function hideLoading() {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('PDF Multi Tool: DOMContentLoaded');
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+      console.log('PDF Multi Tool: DOMContentLoaded');
     initializeTool();
   });
 } else {
-  console.log(
-    'PDF Multi Tool: DOMContentLoaded already fired, initializing immediately'
-  );
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+    console.log(
+      'PDF Multi Tool: DOMContentLoaded already fired, initializing immediately'
+    );
   initializeTool();
 }
 
 function initializeTool() {
-  console.log('PDF Multi Tool: Initializing...');
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+    console.log('PDF Multi Tool: Initializing...');
   createIcons({ icons });
 
   initializeGlobalShortcuts();
@@ -189,7 +192,8 @@ function initializeTool() {
   });
 
   document.getElementById('upload-pdfs-btn')?.addEventListener('click', () => {
-    console.log('Upload button clicked, isRendering:', isRendering);
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+      console.log('Upload button clicked, isRendering:', isRendering);
     if (isRendering) {
       showModal(
         t('multiTool.pleaseWait'),
@@ -499,7 +503,8 @@ async function loadPdfs(files: File[]) {
   if (!pagesContainer) return;
 
   isRendering = true;
-  console.log('PDF Multi Tool: Starting render, isRendering set to true');
+  if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+    console.log('PDF Multi Tool: Starting render, isRendering set to true');
   renderCancelled = false;
 
   // Cleanup previous observers
@@ -515,7 +520,8 @@ async function loadPdfs(files: File[]) {
         let arrayBuffer: ArrayBuffer;
 
         try {
-          console.log(`Repairing ${file.name}...`);
+          if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+            console.log(`Repairing ${file.name}...`);
           const loadingText = document.getElementById('loading-text');
           if (loadingText)
             loadingText.textContent = `Repairing ${file.name}...`;
@@ -523,7 +529,8 @@ async function loadPdfs(files: File[]) {
           const repairedData = await repairPdfFile(file);
           if (repairedData) {
             arrayBuffer = repairedData.buffer as ArrayBuffer;
-            console.log(`Successfully repaired ${file.name} before loading.`);
+            if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+              console.log(`Successfully repaired ${file.name} before loading.`);
           } else {
             console.warn(
               `Repair returned null for ${file.name}, using original file.`
@@ -614,9 +621,10 @@ async function loadPdfs(files: File[]) {
   } finally {
     hideLoading();
     isRendering = false;
-    console.log(
-      'PDF Multi Tool: Render finished/cancelled, isRendering set to false'
-    );
+    if (import.meta.env.VITE_DEBUG_LOGGING === 'true')
+      console.log(
+        'PDF Multi Tool: Render finished/cancelled, isRendering set to false'
+      );
     if (renderCancelled) {
       renderCancelled = false;
     }
@@ -1033,37 +1041,49 @@ async function handleInsertPdf(e: Event) {
     updatePageNumbers();
     renderSplitMarkers();
 
-    // Render pages progressively
-    for (let i = 0; i < numPages; i++) {
-      const globalIndex = insertAfterIndex + 1 + i;
-
-      // Render page
-      const canvas = await renderPageToCanvas(pdfjsDoc, i + 1);
-
-      // Update data
-      if (allPages[globalIndex]) {
-        allPages[globalIndex].canvas = canvas;
-
-        // Update UI if card exists
-        const pagesContainer = document.getElementById('pages-container');
-        const card = pagesContainer?.querySelector(
-          `div[data-page-index="${globalIndex}"]`
+    // Render pages progressively in chunks to avoid memory strain while improving speed
+    const CHUNK_SIZE = 5;
+    for (let i = 0; i < numPages; i += CHUNK_SIZE) {
+      const chunk = [];
+      for (let j = 0; j < CHUNK_SIZE && i + j < numPages; j++) {
+        const pageIndex = i + j;
+        const globalIndex = insertAfterIndex + 1 + pageIndex;
+        chunk.push(
+          renderPageToCanvas(pdfjsDoc, pageIndex + 1).then((canvas) => ({
+            globalIndex,
+            canvas,
+          }))
         );
-        if (card) {
-          const preview =
-            card.querySelector('.bg-gray-700') ||
-            card.querySelector('.bg-white');
-          if (preview) {
-            // Re-create the preview content
-            preview.innerHTML = '';
-            preview.className =
-              'bg-white rounded mb-2 overflow-hidden w-full flex items-center justify-center relative h-36 sm:h-64';
+      }
 
-            const previewCanvas = canvas;
-            previewCanvas.className = 'max-w-full max-h-full object-contain';
-            previewCanvas.style.transform = `rotate(${allPages[globalIndex].visualRotation}deg)`;
-            previewCanvas.style.transition = 'transform 0.2s ease';
-            preview.appendChild(previewCanvas);
+      const results = await Promise.all(chunk);
+
+      for (const { globalIndex, canvas } of results) {
+        // Update data
+        if (allPages[globalIndex]) {
+          allPages[globalIndex].canvas = canvas;
+
+          // Update UI if card exists
+          const pagesContainer = document.getElementById('pages-container');
+          const card = pagesContainer?.querySelector(
+            `div[data-page-index="${globalIndex}"]`
+          );
+          if (card) {
+            const preview =
+              card.querySelector('.bg-gray-700') ||
+              card.querySelector('.bg-white');
+            if (preview) {
+              // Re-create the preview content
+              preview.innerHTML = '';
+              preview.className =
+                'bg-white rounded mb-2 overflow-hidden w-full flex items-center justify-center relative h-36 sm:h-64';
+
+              const previewCanvas = canvas;
+              previewCanvas.className = 'max-w-full max-h-full object-contain';
+              previewCanvas.style.transform = `rotate(${allPages[globalIndex].visualRotation}deg)`;
+              previewCanvas.style.transition = 'transform 0.2s ease';
+              preview.appendChild(previewCanvas);
+            }
           }
         }
       }

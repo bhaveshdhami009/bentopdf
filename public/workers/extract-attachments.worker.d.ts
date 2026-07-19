@@ -5,6 +5,7 @@ interface ExtractAttachmentsMessage {
   fileBuffers: ArrayBuffer[];
   fileNames: string[];
   cpdfUrl?: string;
+  trustedHosts?: string[];
 }
 
 interface ExtractAttachmentSuccessResponse {

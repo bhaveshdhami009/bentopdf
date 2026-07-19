@@ -394,6 +394,7 @@ export async function merge() {
       files: filesToMerge,
       jobs: jobs,
       cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+      trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
       retainPageLabels: retainCheckbox?.checked ?? false,
     };
 
@@ -455,15 +456,16 @@ export async function refreshMergeUI() {
     state.files = await batchDecryptIfNeeded(state.files);
     showLoader('Loading PDF documents...');
 
-    for (let i = 0; i < state.files.length; i++) {
-      const file = state.files[i];
-      const fileKey = `${i}_${file.name}`;
-
-      const bytes = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
-      mergeState.pdfBytes[fileKey] = bytes;
-      mergeState.pdfDocs[fileKey] = pdf;
-    }
+    await Promise.all(
+      state.files.map(async (file, i) => {
+        const fileKey = `${i}_${file.name}`;
+        const bytes = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: bytes.slice(0) })
+          .promise;
+        mergeState.pdfBytes[fileKey] = bytes;
+        mergeState.pdfDocs[fileKey] = pdf;
+      })
+    );
 
     if (state.files.length === 0) {
       hideLoader();

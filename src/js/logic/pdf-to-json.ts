@@ -127,6 +127,7 @@ async function convertPDFsToJSON() {
         fileBuffers: fileBuffers,
         fileNames: selectedFiles.map((f) => f.name),
         cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+        trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
       },
       fileBuffers
     );

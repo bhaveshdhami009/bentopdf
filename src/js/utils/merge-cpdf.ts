@@ -53,6 +53,7 @@ export async function mergePdfsCpdf(
         files,
         jobs,
         cpdfUrl: cpdfBaseUrl + 'coherentpdf.browser.min.js',
+        trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
         retainPageLabels: options?.retainPageLabels === true,
       },
       files.map((f) => f.data)

@@ -277,6 +277,10 @@ class WasmProviderManager {
     }
   }
 
+  getTrustedHosts(): Set<string> {
+    return this.trustedHosts;
+  }
+
   getAllProviders(): WasmProviderConfig {
     return {
       pymupdf: this.config.pymupdf || ENV_DEFAULTS.pymupdf,

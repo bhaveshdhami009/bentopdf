@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { createIcons, icons } from 'lucide';
 import { showAlert, showLoader, hideLoader } from '../ui.js';
 import { readFileAsArrayBuffer, formatBytes } from '../utils/helpers.js';
@@ -175,7 +176,7 @@ function updatePdfDisplay(): void {
 
   const removeBtn = document.createElement('button');
   removeBtn.className = 'ml-4 text-red-400 hover:text-red-300 flex-shrink-0';
-  removeBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
+  removeBtn.innerHTML = DOMPurify.sanitize('<i data-lucide="trash-2" class="w-4 h-4"></i>', { ADD_ATTR: ['data-lucide'] });
   removeBtn.onclick = () => resetState();
 
   fileDiv.append(infoContainer, removeBtn);
@@ -254,14 +255,16 @@ function updateCertDisplay(): void {
 
   const metaSpan = document.createElement('div');
   metaSpan.className = 'text-xs text-green-400';
-  metaSpan.innerHTML =
-    '<i data-lucide="check-circle" class="inline w-3 h-3 mr-1"></i>Trusted certificate loaded';
+  metaSpan.innerHTML = DOMPurify.sanitize(
+    '<i data-lucide="check-circle" class="inline w-3 h-3 mr-1"></i>Trusted certificate loaded',
+    { ADD_ATTR: ['data-lucide'] }
+  );
 
   infoContainer.append(nameSpan, metaSpan);
 
   const removeBtn = document.createElement('button');
   removeBtn.className = 'ml-4 text-red-400 hover:text-red-300 flex-shrink-0';
-  removeBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
+  removeBtn.innerHTML = DOMPurify.sanitize('<i data-lucide="trash-2" class="w-4 h-4"></i>', { ADD_ATTR: ['data-lucide'] });
   removeBtn.onclick = async () => {
     resetCertState();
     if (state.pdfBytes) {
@@ -306,13 +309,16 @@ function displayResults(): void {
   resultsSection.classList.remove('hidden');
 
   if (state.results.length === 0) {
-    resultsContainer.innerHTML = `
+    resultsContainer.innerHTML = DOMPurify.sanitize(
+    `
             <div class="bg-gray-700 rounded-lg p-6 text-center border border-gray-600">
                 <i data-lucide="file-x" class="w-12 h-12 mx-auto mb-4 text-gray-400"></i>
                 <h3 class="text-lg font-semibold text-white mb-2">No Signatures Found</h3>
                 <p class="text-gray-400">This PDF does not contain any digital signatures.</p>
             </div>
-        `;
+        `,
+    { ADD_ATTR: ['data-lucide'] }
+  );
     createIcons({ icons });
     return;
   }
@@ -346,7 +352,7 @@ function displayResults(): void {
         `;
   }
 
-  summaryDiv.innerHTML = summaryHtml;
+  summaryDiv.innerHTML = DOMPurify.sanitize(summaryHtml, { ADD_ATTR: ['data-lucide'] });
   resultsContainer.appendChild(summaryDiv);
 
   state.results.forEach((result, index) => {
@@ -417,7 +423,8 @@ function createSignatureCard(
     }
   }
 
-  card.innerHTML = `
+  card.innerHTML = DOMPurify.sanitize(
+    `
         <div class="flex items-start justify-between mb-4">
             <div class="flex items-center gap-3">
                 <i data-lucide="${statusIcon}" class="w-6 h-6 ${statusColor}"></i>
@@ -509,7 +516,9 @@ function createSignatureCard(
                 </div>
             </details>
         </div>
-    `;
+    `,
+    { ADD_ATTR: ['data-lucide'] }
+  );
 
   return card;
 }

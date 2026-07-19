@@ -20,6 +20,17 @@ interface GhostscriptModule {
 
 export type PdfALevel = 'PDF/A-1b' | 'PDF/A-2b' | 'PDF/A-3b';
 
+function cleanupFiles(gs: GhostscriptModule, files: string[]) {
+  files.forEach((file) => {
+    try {
+      gs.FS.unlink(file);
+    } catch (e) {
+      console.warn('[Ghostscript] Failed to clean up temp file:', e);
+    }
+  });
+}
+
+
 let cachedGsModule: GhostscriptModule | null = null;
 
 export function setCachedGsModule(module: GhostscriptModule): void {
@@ -205,26 +216,7 @@ export async function convertToPdfA(
   console.log('[Ghostscript] Exit code:', exitCode);
 
   if (exitCode !== 0) {
-    try {
-      gs.FS.unlink(inputPath);
-    } catch (e) {
-      console.warn('[Ghostscript] Failed to clean up temp file:', e);
-    }
-    try {
-      gs.FS.unlink(outputPath);
-    } catch (e) {
-      console.warn('[Ghostscript] Failed to clean up temp file:', e);
-    }
-    try {
-      gs.FS.unlink(iccPath);
-    } catch (e) {
-      console.warn('[Ghostscript] Failed to clean up temp file:', e);
-    }
-    try {
-      gs.FS.unlink(pdfaDefPath);
-    } catch (e) {
-      console.warn('[Ghostscript] Failed to clean up temp file:', e);
-    }
+    cleanupFiles(gs, [inputPath, outputPath, iccPath, pdfaDefPath]);
     throw new Error(`Ghostscript conversion failed with exit code ${exitCode}`);
   }
 
@@ -240,26 +232,7 @@ export async function convertToPdfA(
   }
 
   // Cleanup
-  try {
-    gs.FS.unlink(inputPath);
-  } catch (e) {
-    console.warn('[Ghostscript] Failed to clean up temp file:', e);
-  }
-  try {
-    gs.FS.unlink(outputPath);
-  } catch (e) {
-    console.warn('[Ghostscript] Failed to clean up temp file:', e);
-  }
-  try {
-    gs.FS.unlink(iccPath);
-  } catch (e) {
-    console.warn('[Ghostscript] Failed to clean up temp file:', e);
-  }
-  try {
-    gs.FS.unlink(pdfaDefPath);
-  } catch (e) {
-    console.warn('[Ghostscript] Failed to clean up temp file:', e);
-  }
+  cleanupFiles(gs, [inputPath, outputPath, iccPath, pdfaDefPath]);
 
   if (level !== 'PDF/A-1b') {
     onProgress?.('Post-processing for transparency compliance...');
@@ -433,25 +406,12 @@ export async function convertFontsToOutlines(
   try {
     exitCode = gs.callMain(args);
   } catch (e) {
-    try {
-      gs.FS.unlink(inputPath);
-    } catch (e2) {
-      console.warn('[Ghostscript] Failed to clean up temp file:', e2);
-    }
+    cleanupFiles(gs, [inputPath]);
     throw new Error(`Ghostscript threw an exception: ${e}`, { cause: e });
   }
 
   if (exitCode !== 0) {
-    try {
-      gs.FS.unlink(inputPath);
-    } catch (e) {
-      console.warn('[Ghostscript] Failed to clean up temp file:', e);
-    }
-    try {
-      gs.FS.unlink(outputPath);
-    } catch (e) {
-      console.warn('[Ghostscript] Failed to clean up temp file:', e);
-    }
+    cleanupFiles(gs, [inputPath, outputPath]);
     throw new Error(`Ghostscript conversion failed with exit code ${exitCode}`);
   }
 
@@ -462,16 +422,7 @@ export async function convertFontsToOutlines(
     throw new Error('Ghostscript did not produce output file', { cause: e });
   }
 
-  try {
-    gs.FS.unlink(inputPath);
-  } catch (e) {
-    console.warn('[Ghostscript] Failed to clean up temp file:', e);
-  }
-  try {
-    gs.FS.unlink(outputPath);
-  } catch (e) {
-    console.warn('[Ghostscript] Failed to clean up temp file:', e);
-  }
+  cleanupFiles(gs, [inputPath, outputPath]);
 
   return output;
 }

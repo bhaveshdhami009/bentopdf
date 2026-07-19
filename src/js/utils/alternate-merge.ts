@@ -51,6 +51,7 @@ export async function interleavePdfs(
         command: 'interleave',
         files,
         cpdfUrl: cpdfBaseUrl + 'coherentpdf.browser.min.js',
+        trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
         retainPageLabels: options?.retainPageLabels === true,
       },
       files.map((f) => f.data)

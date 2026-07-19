@@ -385,13 +385,80 @@ export function sanitizeEmailHtml(html: string): string {
 }
 
 /**
- * Formats a raw RFC 2822 date string into a nicer human-readable format,
+ * Formats a raw RFC 2822 date string or a PDF date string into a nicer human-readable format,
  * while preserving the original timezone and time.
- * Example input: "Sun, 8 Jan 2017 20:37:44 +0200"
- * Example output: "Sunday, January 8, 2017 at 8:37 PM (+0200)"
+ * Example input: "Sun, 8 Jan 2017 20:37:44 +0200" or "D:20170108203744+02'00'"
+ * Example output: "Sunday, January 8, 2017 at 8:37 PM (UTC+02:00)"
  */
 export function formatRawDate(raw: string): string {
   try {
+    // Try matching PDF date format: D:YYYYMMDDHHmmSSOHH'mm'
+    const pdfMatch = raw.match(
+      /^D:(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})([Z+-])(?:(\d{2})'(\d{2})')?/
+    );
+
+    if (pdfMatch) {
+      const [
+        ,
+        year,
+        month,
+        day,
+        hoursStr,
+        minsStr,
+        secsStr,
+        tzSign,
+        tzHoursStr,
+        tzMinsStr,
+      ] = pdfMatch;
+
+      const date = new Date(
+        Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day))
+      );
+      const days = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ];
+      const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ];
+
+      const fullDay = days[date.getUTCDay()];
+      const fullMonth = months[date.getUTCMonth()];
+      const dom = parseInt(day).toString();
+
+      let hours = parseInt(hoursStr, 10);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+
+      let formattedTz = 'UTC';
+      if (tzSign === 'Z') {
+        formattedTz = 'UTC';
+      } else {
+        const tzHours = tzHoursStr || '00';
+        const tzMins = tzMinsStr || '00';
+        formattedTz = `UTC${tzSign}${tzHours}:${tzMins}`;
+      }
+
+      return `${fullDay}, ${fullMonth} ${dom}, ${year} at ${hours}:${minsStr} ${ampm} (${formattedTz})`;
+    }
+
     const match = raw.match(
       /([A-Za-z]{3}),\s+(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?\s+([+-]\d{4})/
     );

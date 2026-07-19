@@ -225,6 +225,7 @@ async function extractAttachments() {
       fileBuffers,
       fileNames,
       cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+      trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
     };
 
     const transferables = fileBuffers.map(function (buf) {

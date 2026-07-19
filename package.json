@@ -44,6 +44,7 @@
     "@eslint/js": "^10.0.1",
     "@testing-library/dom": "^10.4.1",
     "@types/blob-stream": "^0.1.33",
+    "@types/dompurify": "^3.0.5",
     "@types/html2canvas": "^1.0.0",
     "@types/pdfkit": "^0.17.5",
     "@types/sortablejs": "^1.15.8",

@@ -160,6 +160,7 @@ async function generateTableOfContents() {
       fontFamily,
       addBookmark,
       cpdfUrl: WasmProvider.getUrl('cpdf')! + 'coherentpdf.browser.min.js',
+      trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
     };
 
     worker.postMessage(message, [arrayBuffer]);

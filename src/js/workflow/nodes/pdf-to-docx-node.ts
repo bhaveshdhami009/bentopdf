@@ -27,27 +27,49 @@ export class PdfToDocxNode extends BaseWorkflowNode {
       const blob = new Blob([new Uint8Array(allPdfs[0].bytes)], {
         type: 'application/pdf',
       });
-      const docxBlob = await pymupdf.pdfToDocx(blob);
       const name = allPdfs[0].filename.replace(/\.pdf$/i, '') + '.docx';
-      downloadFile(docxBlob, name);
+      downloadFile(await pymupdf.pdfToDocx(blob), name);
     } else {
       const JSZip = (await import('jszip')).default;
       const zip = new JSZip();
-      const docxResults = await Promise.all(
-        allPdfs.map(async (pdf) => {
+
+      // Parallel for small batches, sequential for large ones.
+      const PARALLEL_LIMIT = 4;
+
+      if (allPdfs.length <= PARALLEL_LIMIT) {
+        const docxResults = await Promise.all(
+          allPdfs.map(async (pdf) => {
+            const blob = new Blob([new Uint8Array(pdf.bytes)], {
+              type: 'application/pdf',
+            });
+
+            const docxBlob = await pymupdf.pdfToDocx(blob);
+
+            return {
+              name: pdf.filename.replace(/\.pdf$/i, '') + '.docx',
+              arrayBuffer: await docxBlob.arrayBuffer(),
+            };
+          })
+        );
+
+        for (const { name, arrayBuffer } of docxResults) {
+          zip.file(name, arrayBuffer);
+        }
+      } else {
+        for (const pdf of allPdfs) {
           const blob = new Blob([new Uint8Array(pdf.bytes)], {
             type: 'application/pdf',
           });
-          const docxBlob = await pymupdf.pdfToDocx(blob);
-          const name = pdf.filename.replace(/\.pdf$/i, '') + '.docx';
-          const arrayBuffer = await docxBlob.arrayBuffer();
-          return { name, arrayBuffer };
-        })
-      );
 
-      for (const { name, arrayBuffer } of docxResults) {
-        zip.file(name, arrayBuffer);
+          const docxBlob = await pymupdf.pdfToDocx(blob);
+
+          zip.file(
+            pdf.filename.replace(/\.pdf$/i, '') + '.docx',
+            await docxBlob.arrayBuffer()
+          );
+        }
       }
+
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       downloadFile(zipBlob, 'docx_files.zip');
     }
