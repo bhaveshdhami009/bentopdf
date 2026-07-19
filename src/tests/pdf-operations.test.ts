@@ -115,6 +115,18 @@ describe('pdf-operations', () => {
     it('should handle empty parts gracefully', () => {
       expect(parseDeletePages('1,,5', 10)).toEqual(new Set([1, 5]));
     });
+
+    it('should handle invalid non-numeric input', () => {
+      expect(parseDeletePages('abc', 10)).toEqual(new Set());
+    });
+
+    it('should handle range with invalid start (NaN defaults to 1)', () => {
+      expect(parseDeletePages('abc-3', 10)).toEqual(new Set([1, 2, 3]));
+    });
+
+    it('should handle range with invalid end (NaN defaults to totalPages)', () => {
+      expect(parseDeletePages('8-abc', 10)).toEqual(new Set([8, 9, 10]));
+    });
   });
 
   describe('mergePdfs', () => {

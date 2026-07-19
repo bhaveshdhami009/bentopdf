@@ -99,6 +99,7 @@ export class TableOfContentsNode extends BaseWorkflowNode {
               fontFamily,
               addBookmark,
               cpdfUrl: cpdfUrl + 'coherentpdf.browser.min.js',
+              trustedHosts: Array.from(WasmProvider.getTrustedHosts()),
             },
             [arrayBuffer]
           );

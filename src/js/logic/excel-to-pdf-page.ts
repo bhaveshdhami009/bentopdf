@@ -119,22 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
           () => resetState()
         );
       } else {
-        showLoader('Processing...');
+        showLoader(`Converting ${state.files.length} files...`);
         const JSZip = (await import('jszip')).default;
         const zip = new JSZip();
 
-        for (let i = 0; i < state.files.length; i++) {
-          const file = state.files[i];
-          showLoader(
-            `Converting ${i + 1}/${state.files.length}: ${file.name}...`
-          );
-
-          const pdfBlob = await converter.convertToPdf(file);
-
-          const baseName = file.name.replace(/\.(xls|xlsx|ods|csv)$/i, '');
-          const pdfBuffer = await pdfBlob.arrayBuffer();
-          zip.file(`${baseName}.pdf`, pdfBuffer);
-        }
+        await Promise.all(
+          state.files.map(async (file) => {
+            const pdfBlob = await converter.convertToPdf(file);
+            const baseName = file.name.replace(/\.(xls|xlsx|ods|csv)$/i, '');
+            const pdfBuffer = await pdfBlob.arrayBuffer();
+            zip.file(`${baseName}.pdf`, pdfBuffer);
+          })
+        );
 
         const zipBlob = await zip.generateAsync({ type: 'blob' });
 

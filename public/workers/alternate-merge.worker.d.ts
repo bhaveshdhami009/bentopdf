@@ -9,6 +9,7 @@ interface InterleaveMessage {
   command: 'interleave';
   files: InterleaveFile[];
   cpdfUrl?: string;
+  trustedHosts?: string[];
 }
 
 interface InterleaveSuccessResponse {

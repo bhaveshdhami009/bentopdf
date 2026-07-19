@@ -6,6 +6,7 @@ interface AddAttachmentsMessage {
   attachmentBuffers: ArrayBuffer[];
   attachmentNames: string[];
   cpdfUrl?: string;
+  trustedHosts?: string[];
 }
 
 interface AddAttachmentsSuccessResponse {

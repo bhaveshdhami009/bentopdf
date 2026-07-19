@@ -8,10 +8,62 @@ import {
   escapeHtml,
   sanitizeEmailHtml,
   getCleanPdfFilename,
+  truncateFilename,
   uint8ArrayToBase64,
+  formatRawDate,
 } from '../js/utils/helpers';
 
 describe('helpers', () => {
+  describe('formatRawDate', () => {
+    it('should format a standard RFC 2822 date string correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 20:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 8:37 PM (UTC+02:00)'
+      );
+    });
+
+    it('should format an AM time correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 08:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 8:37 AM (UTC+02:00)'
+      );
+    });
+
+    it('should handle 12 PM (noon) correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 12:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 12:37 PM (UTC+02:00)'
+      );
+    });
+
+    it('should handle midnight correctly', () => {
+      expect(formatRawDate('Sun, 8 Jan 2017 00:37:44 +0200')).toBe(
+        'Sunday, January 8, 2017 at 12:37 AM (UTC+02:00)'
+      );
+    });
+
+    it('should format a standard PDF date string correctly', () => {
+      expect(formatRawDate("D:20170108203744+02'00'")).toBe(
+        'Sunday, January 8, 2017 at 8:37 PM (UTC+02:00)'
+      );
+    });
+
+    it('should format a PDF date string with Z correctly', () => {
+      expect(formatRawDate('D:20170108203744Z')).toBe(
+        'Sunday, January 8, 2017 at 8:37 PM (UTC)'
+      );
+    });
+
+    it('should return the original string if it is a malformed PDF date', () => {
+      expect(formatRawDate('D:2017010820374')).toBe('D:2017010820374');
+    });
+
+    it('should return the original string if it is malformed', () => {
+      expect(formatRawDate('Invalid Date String')).toBe('Invalid Date String');
+    });
+
+    it('should return the original input if it throws an error (e.g. passing null)', () => {
+      expect(formatRawDate(null as unknown as string)).toBe(null);
+    });
+  });
+
   describe('escapeHtml', () => {
     it('should return empty string if input is empty', () => {
       expect(escapeHtml('')).toBe('');
@@ -274,6 +326,18 @@ describe('helpers', () => {
 
   describe('parsePageRanges', () => {
     const totalPages = 10;
+
+    it('should return all pages for null', () => {
+      expect(parsePageRanges(null as unknown as string, totalPages)).toEqual([
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ]);
+    });
+
+    it('should return all pages for undefined', () => {
+      expect(
+        parsePageRanges(undefined as unknown as string, totalPages)
+      ).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    });
 
     it('should return all pages for empty string', () => {
       expect(parsePageRanges('', totalPages)).toEqual([
@@ -546,6 +610,40 @@ describe('helpers', () => {
       const result = sanitizeEmailHtml(largeHtml);
       expect(result).toContain('...</body></html>');
       expect(result.length).toBeLessThanOrEqual(maxHtmlSize + 20); // 100000 + length of suffix
+    });
+  });
+
+  describe('truncateFilename', () => {
+    it('should not truncate a filename shorter than maxLength', () => {
+      expect(truncateFilename('short.pdf', 20)).toBe('short.pdf');
+    });
+
+    it('should not truncate a filename exactly equal to maxLength', () => {
+      expect(truncateFilename('exact_len.pdf', 13)).toBe('exact_len.pdf');
+    });
+
+    it('should truncate a longer filename and preserve the extension', () => {
+      expect(truncateFilename('very_long_filename_indeed.pdf', 15)).toBe(
+        'very_lon....pdf'
+      );
+    });
+
+    it('should truncate a longer filename without an extension', () => {
+      expect(truncateFilename('very_long_filename_no_extension', 15)).toBe(
+        'very_long_fi...'
+      );
+    });
+
+    it('should handle cases where available length is <= 0 (e.g. extension itself is too long)', () => {
+      expect(truncateFilename('test.superlongextension', 10)).toBe(
+        'test.su...'
+      );
+    });
+
+    it('should use the default maxLength (25) if not provided', () => {
+      // 25 chars max
+      const name25 = 'abcdefghijklmnopqrstuv.pdf'; // 26 chars
+      expect(truncateFilename(name25)).toBe('abcdefghijklmnopqr....pdf');
     });
   });
 });

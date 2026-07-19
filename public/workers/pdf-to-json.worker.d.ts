@@ -5,6 +5,7 @@ interface ConvertPDFToJSONMessage {
   fileBuffers: ArrayBuffer[];
   fileNames: string[];
   cpdfUrl?: string;
+  trustedHosts?: string[];
 }
 
 interface PDFToJSONSuccessResponse {

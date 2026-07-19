@@ -1,6 +1,6 @@
 let cpdfLoaded = false;
 
-function loadCpdf(cpdfUrl) {
+function loadCpdf(cpdfUrl, additionalTrustedSources = []) {
   if (cpdfLoaded) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
@@ -12,20 +12,36 @@ function loadCpdf(cpdfUrl) {
 
     try {
       const parsedUrl = new URL(cpdfUrl, self.location.origin);
-      let isAllowed = false;
-      if (parsedUrl.hostname === self.location.hostname) {
-        isAllowed = true;
-      } else if (
-        parsedUrl.hostname === 'cdn.jsdelivr.net' &&
-        parsedUrl.pathname.startsWith('/npm/coherentpdf@')
-      ) {
-        isAllowed = true;
-      }
+
+      // Built-in trusted sources
+      const trustedSources = [
+        {
+          hostname: self.location.hostname,
+          pathnamePrefix: '/',
+        },
+        {
+          hostname: 'cdn.jsdelivr.net',
+          pathnamePrefix: '/npm/coherentpdf@',
+        },
+        ...additionalTrustedSources,
+      ];
+
+      const isAllowed = trustedSources.some(
+        ({ hostname, pathnamePrefix }) =>
+          parsedUrl.hostname === hostname &&
+          parsedUrl.pathname.startsWith(pathnamePrefix)
+      );
 
       if (!isAllowed) {
         throw new Error('Untrusted script URL: ' + parsedUrl.href);
       }
-      self.importScripts(cpdfUrl);
+
+      self.importScripts(parsedUrl.href);
+
+      if (typeof coherentpdf === 'undefined') {
+        throw new Error('CoherentPDF failed to initialize.');
+      }
+
       cpdfLoaded = true;
       resolve();
     } catch (error) {
@@ -41,13 +57,24 @@ function parsePageRange(rangeString, totalPages) {
   for (const part of parts) {
     if (part.includes('-')) {
       const [start, end] = part.split('-').map((s) => parseInt(s.trim(), 10));
+
       if (isNaN(start) || isNaN(end)) continue;
-      for (let i = Math.max(1, start); i <= Math.min(totalPages, end); i++) {
+
+      for (
+        let i = Math.max(1, start);
+        i <= Math.min(totalPages, end);
+        i++
+      ) {
         pages.add(i);
       }
     } else {
       const pageNum = parseInt(part, 10);
-      if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+
+      if (
+        !isNaN(pageNum) &&
+        pageNum >= 1 &&
+        pageNum <= totalPages
+      ) {
         pages.add(pageNum);
       }
     }
@@ -67,6 +94,7 @@ function addAttachmentsToPDFInWorker(
     const uint8Array = new Uint8Array(pdfBuffer);
 
     let pdf;
+
     try {
       pdf = coherentpdf.fromMemory(uint8Array, '');
     } catch (error) {
@@ -95,6 +123,7 @@ function addAttachmentsToPDFInWorker(
     const totalPages = coherentpdf.pages(pdf);
 
     let targetPages = [];
+
     if (attachmentLevel === 'page') {
       if (!pageRange) {
         self.postMessage({
@@ -104,7 +133,9 @@ function addAttachmentsToPDFInWorker(
         coherentpdf.deletePdf(pdf);
         return;
       }
+
       targetPages = parsePageRange(pageRange, totalPages);
+
       if (targetPages.length === 0) {
         self.postMessage({
           status: 'error',
@@ -121,7 +152,11 @@ function addAttachmentsToPDFInWorker(
         const attachmentName = attachmentNames[i];
 
         if (attachmentLevel === 'document') {
-          coherentpdf.attachFileFromMemory(attachmentData, attachmentName, pdf);
+          coherentpdf.attachFileFromMemory(
+            attachmentData,
+            attachmentName,
+            pdf
+          );
         } else {
           for (const pageNum of targetPages) {
             coherentpdf.attachFileToPageFromMemory(
@@ -133,17 +168,25 @@ function addAttachmentsToPDFInWorker(
           }
         }
       } catch (error) {
-        console.warn(`Failed to attach file ${attachmentNames[i]}:`, error);
+        console.warn(
+          `Failed to attach file ${attachmentNames[i]}:`,
+          error
+        );
+
         self.postMessage({
           status: 'error',
-          message: `Failed to attach file ${attachmentNames[i]}: ${error.message || error}`,
+          message: `Failed to attach file ${attachmentNames[i]}: ${
+            error.message || error
+          }`,
         });
+
         coherentpdf.deletePdf(pdf);
         return;
       }
     }
 
     const modifiedBytes = coherentpdf.toMemory(pdf, false, false);
+
     coherentpdf.deletePdf(pdf);
 
     const buffer = modifiedBytes.buffer.slice(
@@ -170,7 +213,10 @@ function addAttachmentsToPDFInWorker(
 }
 
 self.onmessage = async function (e) {
-  const { cpdfUrl } = e.data;
+  const {
+    cpdfUrl,
+    trustedSources = [],
+  } = e.data;
 
   if (!cpdfUrl) {
     self.postMessage({
@@ -182,7 +228,7 @@ self.onmessage = async function (e) {
   }
 
   try {
-    await loadCpdf(cpdfUrl);
+    await loadCpdf(cpdfUrl, trustedSources);
   } catch (error) {
     self.postMessage({
       status: 'error',
