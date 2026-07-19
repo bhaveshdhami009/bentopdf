@@ -1,0 +1,1 @@
+["When fixing dynamic script imports, strictly validate the URL. Check both origin (`parsedUrl.hostname === self.location.hostname`) and specific strict CDN paths (`parsedUrl.pathname.startsWith(\"/npm/coherentpdf@\")`) to prevent code execution via malicious URLs."]
